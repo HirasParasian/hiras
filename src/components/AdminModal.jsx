@@ -183,13 +183,18 @@ export default function AdminModal({
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (useRedirect = false) => {
     setAuthLoading(true);
     setAuthError('');
     try {
-      await loginWithGoogle();
+      await loginWithGoogle(useRedirect);
     } catch (err) {
-      setAuthError(err.message || 'Gagal login dengan Google.');
+      console.error(err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setAuthError('Domain ini belum diizinkan di Firebase. Pastikan domain www.hiras.my.id sudah ditambahkan ke Authorized Domains di Firebase Console.');
+      } else {
+        setAuthError(err.message || 'Gagal login dengan Google.');
+      }
     } finally {
       setAuthLoading(false);
     }
@@ -496,15 +501,28 @@ export default function AdminModal({
                 ATAU
               </div>
 
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={authLoading}
-                className="btn btn-secondary"
-                style={{ width: '100%', padding: '0.8rem' }}
-              >
-                <span>Masuk dengan Akun Google</span>
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                <button
+                  type="button"
+                  onClick={() => handleGoogleLogin(false)}
+                  disabled={authLoading}
+                  className="btn btn-secondary"
+                  style={{ width: '100%', padding: '0.8rem' }}
+                >
+                  <span>Masuk dengan Akun Google</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleGoogleLogin(true)}
+                  disabled={authLoading}
+                  className="btn btn-outline-glow btn-sm"
+                  style={{ width: '100%', padding: '0.55rem', fontSize: '0.82rem' }}
+                  title="Gunakan opsi ini jika browser Anda memunculkan peringatan Cross-Origin-Opener-Policy atau popup diblokir"
+                >
+                  <span>Alternatif: Masuk dengan Google (Redirect)</span>
+                </button>
+              </div>
             </div>
           ) : (
             /* Logged-In Admin CMS */

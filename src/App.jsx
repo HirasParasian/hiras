@@ -24,6 +24,7 @@ import {
   fetchPosts,
   fetchBooks,
   fetchProfile,
+  checkRedirectLogin,
   ADMIN_EMAIL
 } from './services/firebase';
 
@@ -49,6 +50,7 @@ export default function App() {
 
   // Listen to Auth State
   useEffect(() => {
+    checkRedirectLogin().catch((e) => console.warn('Redirect check:', e));
     const unsubscribe = onAuthUserChanged((user) => {
       setCurrentUser(user);
       if (user && user.email) {

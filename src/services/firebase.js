@@ -4,6 +4,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged
@@ -70,10 +72,48 @@ export const registerWithEmail = async (email, password) => {
   return await createUserWithEmailAndPassword(auth, email, password);
 };
 
-export const loginWithGoogle = async () => {
+export const loginWithGooglePopup = async () => {
   if (!auth) throw new Error('Firebase Auth belum terhubung.');
   const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
   return await signInWithPopup(auth, provider);
+};
+
+export const loginWithGoogleRedirect = async () => {
+  if (!auth) throw new Error('Firebase Auth belum terhubung.');
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  return await signInWithRedirect(auth, provider);
+};
+
+export const loginWithGoogle = async (useRedirect = false) => {
+  if (useRedirect) {
+    return await loginWithGoogleRedirect();
+  }
+  try {
+    return await loginWithGooglePopup();
+  } catch (err) {
+    console.warn('Popup login failed, attempting redirect:', err);
+    if (
+      err.code === 'auth/popup-blocked' ||
+      err.code === 'auth/cancelled-popup-request' ||
+      String(err.message).includes('Cross-Origin-Opener-Policy') ||
+      String(err.message).includes('closed')
+    ) {
+      return await loginWithGoogleRedirect();
+    }
+    throw err;
+  }
+};
+
+export const checkRedirectLogin = async () => {
+  if (!auth) return null;
+  try {
+    return await getRedirectResult(auth);
+  } catch (err) {
+    console.warn('Redirect auth result warning:', err);
+    return null;
+  }
 };
 
 export const logoutUser = async () => {
