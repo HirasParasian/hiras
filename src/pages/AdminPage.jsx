@@ -18,6 +18,8 @@ import {
   Globe,
   Settings,
   Search,
+  FileSpreadsheet,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -31,6 +33,8 @@ import {
 } from '../services/firebase';
 import ImageUpload from '../components/ImageUpload';
 import TiptapEditor from '../components/TiptapEditor';
+import ExcelImportModal from '../components/ExcelImportModal';
+import { downloadBookTemplate } from '../services/excelService';
 import { generateShortId } from '../utils/shortId';
 import { defaultBooks, defaultArticles } from '../data/defaultData';
 
@@ -52,6 +56,7 @@ export default function AdminPage() {
   const [bookSearch, setBookSearch] = useState('');
   const [editingBookId, setEditingBookId] = useState(null);
   const [isBookFormOpen, setIsBookFormOpen] = useState(false);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
   const [bookForm, setBookForm] = useState({
     title: '',
     author: '',
@@ -571,14 +576,36 @@ export default function AdminPage() {
               />
             </div>
 
-            <button
-              type="button"
-              onClick={handleOpenAddBook}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors shadow-xs cursor-pointer"
-            >
-              <Plus size={16} />
-              <span>Tambah Buku Baru</span>
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={downloadBookTemplate}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors shadow-xs cursor-pointer"
+                title="Unduh format spreadsheet (.xlsx)"
+              >
+                <Download size={14} className="text-emerald-500" />
+                <span>Download Template Excel</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsExcelModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer"
+                title="Bulk upload buku dari file Excel"
+              >
+                <FileSpreadsheet size={14} />
+                <span>Upload via Excel</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenAddBook}
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer"
+              >
+                <Plus size={15} />
+                <span>Tambah Buku Manual</span>
+              </button>
+            </div>
           </div>
 
           {/* Book Form (Modal / Collapsible Panel) */}
@@ -1244,6 +1271,16 @@ service cloud.firestore {
           </div>
         </div>
       )}
+
+      {/* Excel Bulk Upload Modal */}
+      <ExcelImportModal
+        isOpen={isExcelModalOpen}
+        onClose={() => setIsExcelModalOpen(false)}
+        onImportSuccess={async (count) => {
+          showFeedback('success', `Berhasil mengimpor ${count} buku ke Firestore!`);
+          await loadData();
+        }}
+      />
     </div>
   );
 }

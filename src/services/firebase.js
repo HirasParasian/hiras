@@ -22,6 +22,7 @@ import {
   where,
   orderBy,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -169,6 +170,37 @@ export const deleteBookItem = async (id) => {
   if (!db) throw new Error('Firestore belum aktif.');
   await deleteDoc(doc(db, 'books', id));
   return id;
+};
+
+export const batchSaveBooks = async (booksList) => {
+  if (!db) throw new Error('Firestore belum aktif.');
+  const batch = writeBatch(db);
+  const created = [];
+
+  for (const book of booksList) {
+    const docRef = doc(collection(db, 'books'));
+    const payload = {
+      title: book.title || 'Tanpa Judul',
+      author: book.author || 'Anonim',
+      genre: book.genre || 'Umum',
+      status: book.status || 'Selesai Dibaca',
+      format: book.format || 'fisik',
+      publisher: book.publisher || '',
+      location: book.location || '',
+      onlineUrl: book.onlineUrl || '',
+      notes: book.notes || '',
+      rating: Number(book.rating) || 5,
+      cover: book.cover || '',
+      year: String(book.year || new Date().getFullYear()),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+    batch.set(docRef, payload);
+    created.push({ id: docRef.id, ...payload });
+  }
+
+  await batch.commit();
+  return created;
 };
 
 // ==========================================

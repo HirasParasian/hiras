@@ -8,31 +8,39 @@ import {
   ExternalLink,
   X,
   Building,
+  FileSpreadsheet,
+  Download,
 } from 'lucide-react';
 import { fetchBooks } from '../services/firebase';
 import { defaultBooks } from '../data/defaultData';
+import { useAuth } from '../context/AuthContext';
+import ExcelImportModal from '../components/ExcelImportModal';
+import { downloadBookTemplate } from '../services/excelService';
 
 export default function BooksPage() {
+  const { isAdmin } = useAuth();
   const [books, setBooks] = useState(defaultBooks);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('Semua');
   const [formatFilter, setFormatFilter] = useState('Semua');
   const [selectedBook, setSelectedBook] = useState(null);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+
+  const loadBooks = async () => {
+    try {
+      const cloudBooks = await fetchBooks();
+      if (cloudBooks && cloudBooks.length > 0) {
+        setBooks(cloudBooks);
+      }
+    } catch (err) {
+      console.warn('Using default books fallback:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadBooks = async () => {
-      try {
-        const cloudBooks = await fetchBooks();
-        if (cloudBooks && cloudBooks.length > 0) {
-          setBooks(cloudBooks);
-        }
-      } catch (err) {
-        console.warn('Using default books fallback:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadBooks();
   }, []);
 
@@ -56,17 +64,42 @@ export default function BooksPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-8">
       {/* Page Header */}
-      <div className="space-y-3">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
-          <BookOpen size={14} />
-          <span>Katalog & Koleksi Bacaan</span>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+            <BookOpen size={14} />
+            <span>Katalog & Koleksi Bacaan</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+            Daftar Buku Saya
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed">
+            Koleksi buku fisik yang tersimpan di rak dan kotak saya, serta buku online/e-book yang pernah dan sedang saya telaah beserta catatan intisarinya.
+          </p>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
-          Daftar Buku Saya
-        </h1>
-        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-          Koleksi buku fisik yang tersimpan di rak dan kotak saya, serta buku online/e-book yang pernah dan sedang saya telaah beserta catatan intisarinya.
-        </p>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={downloadBookTemplate}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors shadow-xs cursor-pointer"
+            title="Download Template Excel (.xlsx)"
+          >
+            <Download size={14} className="text-emerald-500" />
+            <span>Download Template Excel</span>
+          </button>
+
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setIsExcelModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer"
+            >
+              <FileSpreadsheet size={14} />
+              <span>Bulk Upload Excel</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -324,6 +357,15 @@ export default function BooksPage() {
           </div>
         </div>
       )}
+
+      {/* Excel Bulk Upload Modal */}
+      <ExcelImportModal
+        isOpen={isExcelModalOpen}
+        onClose={() => setIsExcelModalOpen(false)}
+        onImportSuccess={async () => {
+          await loadBooks();
+        }}
+      />
     </div>
   );
 }
