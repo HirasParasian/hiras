@@ -1,192 +1,255 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Hero from '../components/Hero';
-import About from '../components/About';
-import Projects from '../components/Projects';
-import Contact from '../components/Contact';
-import { BookOpen, ArrowRight, Sparkles, FolderGit2, Star } from 'lucide-react';
-import { getOptimizedImageUrl } from '../services/cloudinary';
+import {
+  BookOpen,
+  PenTool,
+  ArrowRight,
+  Sparkles,
+  Bookmark,
+  ChevronRight,
+} from 'lucide-react';
+import { defaultProfile, defaultBooks, defaultArticles } from '../data/defaultData';
+import { fetchBooks, fetchArticles } from '../services/firebase';
 
-export default function HomePage({
-  profile,
-  projects,
-  posts,
-  books,
-  isAdmin,
-  onSelectProject,
-  onEditProject,
-  onEditPost,
-  onOpenExcelImport
-}) {
-  const featuredProjects = projects.slice(0, 3);
-  const latestPosts = posts.slice(0, 3);
-  const featuredBooks = books.slice(0, 3);
+export default function HomePage() {
+  const [books, setBooks] = useState(defaultBooks);
+  const [articles, setArticles] = useState(defaultArticles);
+
+  useEffect(() => {
+    const loadHighlights = async () => {
+      try {
+        const [cloudBooks, cloudArticles] = await Promise.all([
+          fetchBooks(),
+          fetchArticles(true),
+        ]);
+        if (cloudBooks && cloudBooks.length > 0) setBooks(cloudBooks);
+        if (cloudArticles && cloudArticles.length > 0) setArticles(cloudArticles);
+      } catch (err) {
+        console.warn('Using default highlights:', err);
+      }
+    };
+    loadHighlights();
+  }, []);
+
+  const currentlyReading = books.filter((b) => b.status === 'Sedang Dibaca').slice(0, 2);
+  const recentBooks = books.slice(0, 4);
+  const publishedArticles = articles.filter((a) => a.status === 'terbit').slice(0, 3);
 
   return (
-    <div>
-      {/* Hero Section */}
-      <Hero profile={profile} />
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-16">
+      {/* Hero Introduction */}
+      <section className="space-y-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+          <Sparkles size={13} />
+          <span>{defaultProfile.statusBadge}</span>
+        </div>
 
-      {/* Featured Projects Section */}
-      <section className="section" style={{ background: 'rgba(10, 14, 23, 0.4)' }}>
-        <div className="container">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3rem', flexWrap: 'wrap', gap: '1.5rem' }}>
-            <div>
-              <div className="section-tag" style={{ margin: 0, marginBottom: '0.75rem' }}>
-                <FolderGit2 size={13} />
-                <span>Karya Terpilih</span>
-              </div>
-              <h2 style={{ margin: 0 }}>Proyek Unggulan & Portofolio</h2>
+        <div className="space-y-4">
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
+            Halo, Saya <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">Hiras Parasian</span>.
+          </h1>
+          <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 font-normal max-w-2xl leading-relaxed">
+            Seorang <strong>software engineer</strong> yang menyukai arsitektur sistem web modern, gemar mengumpulkan dan mencatat buku, serta mempublikasikan artikel refleksi teknologi.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          <Link
+            to="/list-book"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors shadow-xs"
+          >
+            <BookOpen size={16} />
+            <span>Lihat Rak Buku</span>
+          </Link>
+
+          <Link
+            to="/artikel"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium text-sm transition-colors"
+          >
+            <PenTool size={16} />
+            <span>Baca Artikel</span>
+          </Link>
+
+          <Link
+            to="/me"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm font-medium transition-colors"
+          >
+            <span>Tentang & Kontak (/me)</span>
+            <ChevronRight size={15} />
+          </Link>
+        </div>
+
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-slate-200 dark:border-slate-800">
+          {defaultProfile.stats.map((stat, idx) => (
+            <div
+              key={idx}
+              className="p-3.5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80"
+            >
+              <span className="block text-2xl font-bold text-slate-900 dark:text-slate-100 font-mono">
+                {stat.value}
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">{stat.label}</span>
             </div>
-
-            <Link to="/projects" className="btn btn-outline-glow btn-sm">
-              <span>Lihat Semua Proyek ({projects.length})</span>
-              <ArrowRight size={15} />
-            </Link>
-          </div>
-
-          <Projects
-            projects={featuredProjects}
-            isAdmin={isAdmin}
-            onSelectProject={onSelectProject}
-            onEditProject={onEditProject}
-          />
+          ))}
         </div>
       </section>
 
-      {/* Reading Shelf / Books Showcase Highlight */}
-      <section className="section">
-        <div className="container">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3rem', flexWrap: 'wrap', gap: '1.5rem' }}>
-            <div>
-              <div className="section-tag" style={{ margin: 0, marginBottom: '0.75rem' }}>
-                <BookOpen size={13} />
-                <span>Reading Shelf</span>
-              </div>
-              <h2 style={{ margin: 0 }}>Buku Bacaan & Referensi</h2>
-              <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 0 0' }}>
-                Daftar buku yang membentuk pola pikir rekayasa perangkat lunak dan arsitektur sistem saya.
-              </p>
+      {/* Currently Reading Highlight */}
+      {currentlyReading.length > 0 && (
+        <section className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-blue-50/50 via-slate-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:via-slate-900/40 dark:to-indigo-950/20 border border-blue-200/60 dark:border-blue-900/40">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Bookmark size={16} className="text-blue-500" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+                Sedang Aktif Dibaca
+              </h2>
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <button onClick={onOpenExcelImport} className="btn btn-secondary btn-sm">
-                <span>Upload via Excel</span>
-              </button>
-              <Link to="/books" className="btn btn-primary btn-sm">
-                <span>Buka Rak Buku ({books.length})</span>
-                <ArrowRight size={15} />
-              </Link>
-            </div>
+            <Link
+              to="/list-book"
+              className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+            >
+              <span>Semua Buku</span>
+              <ArrowRight size={13} />
+            </Link>
           </div>
 
-          <div className="books-grid">
-            {featuredBooks.map((book) => (
-              <div key={book.id} className="glass-card glass-card-interactive book-card">
-                <div className="book-cover-container" style={{ height: 220 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {currentlyReading.map((book) => (
+              <div
+                key={book.id}
+                className="flex items-start gap-3.5 p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs"
+              >
+                <div className="w-14 h-20 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
                   <img
-                    src={book.cover || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80'}
+                    src={book.cover}
                     alt={book.title}
-                    className="book-cover-img"
-                    loading="lazy"
+                    className="w-full h-full object-cover"
                   />
-                  <span className={`book-status-pill ${
-                    book.status === 'Selesai Dibaca' ? 'book-status-read' :
-                    book.status === 'Sedang Dibaca' ? 'book-status-reading' : 'book-status-wishlist'
-                  }`}>
-                    {book.status}
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                    {book.genre}
                   </span>
-                </div>
-                <div className="book-body">
-                  <span className="book-genre-tag">{book.genre}</span>
-                  <h3 className="book-title" style={{ fontSize: '1.15rem' }}>{book.title}</h3>
-                  <div className="book-author">oleh {book.author}</div>
-                  <div className="book-stars-row" style={{ marginBottom: '0.75rem' }}>
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star
-                        key={s}
-                        size={14}
-                        fill={s <= (book.rating || 5) ? '#fbbf24' : 'none'}
-                        color={s <= (book.rating || 5) ? '#fbbf24' : 'rgba(255,255,255,0.2)'}
-                      />
-                    ))}
-                  </div>
+                  <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 leading-snug">
+                    {book.title}
+                  </h3>
+                  <p className="text-xs text-slate-500">{book.author}</p>
                   {book.notes && (
-                    <div className="book-notes-box" style={{ fontSize: '0.82rem', marginBottom: '1rem' }}>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 italic line-clamp-2 pt-1">
                       "{book.notes}"
-                    </div>
+                    </p>
                   )}
-                  <Link to="/books" style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', fontWeight: 600, marginTop: 'auto' }}>
-                    Lihat detail di rak buku →
-                  </Link>
                 </div>
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Featured Book Shelf Grid Preview */}
+      <section className="space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+              Koleksi Sampul Buku
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              Buku cetak fisik dan buku online yang membentuk pola pikir rekayasa saya.
+            </p>
+          </div>
+
+          <Link
+            to="/list-book"
+            className="flex items-center gap-1 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            <span>Buka Rak Lengkap</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {recentBooks.map((book) => (
+            <Link
+              key={book.id}
+              to="/list-book"
+              className="group flex flex-col p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:-translate-y-1 shadow-xs"
+            >
+              <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-2.5 relative">
+                <img
+                  src={book.cover}
+                  alt={book.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+                <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/70 text-white backdrop-blur-xs">
+                  {book.status}
+                </span>
+              </div>
+              <h3 className="font-semibold text-xs text-slate-900 dark:text-slate-100 line-clamp-1 group-hover:text-blue-500 transition-colors">
+                {book.title}
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-1">{book.author}</p>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* Latest Blog Articles Highlight */}
-      <section className="section" style={{ background: 'rgba(10, 14, 23, 0.4)' }}>
-        <div className="container">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3rem', flexWrap: 'wrap', gap: '1.5rem' }}>
-            <div>
-              <div className="section-tag" style={{ margin: 0, marginBottom: '0.75rem' }}>
-                <Sparkles size={13} />
-                <span>Tulisan Terbaru</span>
-              </div>
-              <h2 style={{ margin: 0 }}>Artikel & Catatan Rekayasa</h2>
-            </div>
-
-            <Link to="/blog" className="btn btn-outline-glow btn-sm">
-              <span>Buka Semua Artikel ({posts.length})</span>
-              <ArrowRight size={15} />
-            </Link>
+      {/* Recent Published Articles */}
+      <section className="space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+              Artikel & Catatan Rekayasa
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              Eksplorasi teknis dan tulisan yang saya publikasikan.
+            </p>
           </div>
 
-          <div className="blog-grid">
-            {latestPosts.map((post) => (
-              <div key={post.id} className="glass-card glass-card-interactive blog-card">
-                <Link to={`/blog/${post.id}`} className="blog-card-media">
+          <Link
+            to="/artikel"
+            className="flex items-center gap-1 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            <span>Semua Artikel</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {publishedArticles.map((art) => (
+            <Link
+              key={art.id}
+              to={`/artikel/${art.shortId || art.id}`}
+              className="flex flex-col p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:-translate-y-1 shadow-xs"
+            >
+              {art.coverImage && (
+                <div className="aspect-video w-full rounded-xl overflow-hidden mb-3 bg-slate-100 dark:bg-slate-800">
                   <img
-                    src={getOptimizedImageUrl(post.image, 800, 450) || post.image}
-                    alt={post.title}
-                    className="blog-card-img"
+                    src={art.coverImage}
+                    alt={art.title}
+                    className="w-full h-full object-cover"
                     loading="lazy"
                   />
-                </Link>
-                <div className="blog-card-content">
-                  <div className="blog-meta-row">
-                    <span className="blog-badge">{post.category || 'Tech'}</span>
-                    <span>•</span>
-                    <span>{post.readTime || '4 menit'}</span>
-                  </div>
-                  <h3 className="blog-title">
-                    <Link to={`/blog/${post.id}`} style={{ color: 'inherit' }}>
-                      {post.title}
-                    </Link>
-                  </h3>
-                  <p className="blog-summary">{post.summary}</p>
-                  <Link
-                    to={`/blog/${post.id}`}
-                    className="project-link-btn"
-                    style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}
-                  >
-                    <span>Baca Artikel Penuh</span>
-                    <ArrowRight size={15} />
-                  </Link>
                 </div>
+              )}
+              <div className="flex items-center gap-2 text-[11px] text-slate-400 mb-1.5 font-mono">
+                <span>{art.readTime || '3 menit'}</span>
+                <span>•</span>
+                <span className="text-blue-500 font-sans">
+                  {Array.isArray(art.tags) ? art.tags[0] : 'Teknologi'}
+                </span>
               </div>
-            ))}
-          </div>
+              <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 line-clamp-2 mb-1.5 leading-snug">
+                {art.title}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-auto">
+                {art.summary}
+              </p>
+            </Link>
+          ))}
         </div>
       </section>
-
-      {/* About Preview */}
-      <About profile={profile} />
-
-      {/* Contact Section */}
-      <Contact profile={profile} />
     </div>
   );
 }

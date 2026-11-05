@@ -12,11 +12,18 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.3.4",
+    "@tiptap/extension-image": "^3.32.3",
+    "@tiptap/extension-link": "^3.32.3",
+    "@tiptap/extension-placeholder": "^3.32.3",
+    "@tiptap/react": "^3.32.3",
+    "@tiptap/starter-kit": "^3.32.3",
     "firebase": "^13.1.0",
     "lucide-react": "^1.61.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.4",
+    "tailwindcss": "^4.3.4",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

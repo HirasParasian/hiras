@@ -1,254 +1,329 @@
-import React, { useState, useMemo } from 'react';
-import { BookOpen, Search, Upload, Download, FileSpreadsheet, Star, CheckCircle, Clock, Bookmark, Plus, Edit3, Trash2 } from 'lucide-react';
-import { downloadExcelTemplate, exportBooksToExcel } from '../services/excel';
-import { deleteBookItem } from '../services/firebase';
+import React, { useState, useEffect } from 'react';
+import {
+  BookOpen,
+  Search,
+  Star,
+  MapPin,
+  Globe,
+  ExternalLink,
+  X,
+  Building,
+} from 'lucide-react';
+import { fetchBooks } from '../services/firebase';
+import { defaultBooks } from '../data/defaultData';
 
-export default function BooksPage({ books, isAdmin, onOpenExcelImport, onSelectBook, onEditBook, onRefreshData }) {
-  const [searchQuery, setSearchQuery] = useState('');
+export default function BooksPage() {
+  const [books, setBooks] = useState(defaultBooks);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('Semua');
+  const [formatFilter, setFormatFilter] = useState('Semua');
+  const [selectedBook, setSelectedBook] = useState(null);
 
-  // Filtered books
-  const filteredBooks = useMemo(() => {
-    return books.filter((b) => {
-      const matchSearch =
-        b.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.genre?.toLowerCase().includes(searchQuery.toLowerCase());
+  useEffect(() => {
+    const loadBooks = async () => {
+      try {
+        const cloudBooks = await fetchBooks();
+        if (cloudBooks && cloudBooks.length > 0) {
+          setBooks(cloudBooks);
+        }
+      } catch (err) {
+        console.warn('Using default books fallback:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadBooks();
+  }, []);
 
-      const matchStatus = statusFilter === 'Semua' || b.status === statusFilter;
-      return matchSearch && matchStatus;
-    });
-  }, [books, searchQuery, statusFilter]);
+  const statuses = ['Semua', 'Sedang Dibaca', 'Selesai Dibaca', 'Wishlist'];
 
-  // Statistics
-  const stats = useMemo(() => {
-    const total = books.length;
-    const completed = books.filter((b) => b.status === 'Selesai Dibaca').length;
-    const reading = books.filter((b) => b.status === 'Sedang Dibaca').length;
-    const wishlist = books.filter((b) => b.status === 'Wishlist').length;
-    return { total, completed, reading, wishlist };
-  }, [books]);
+  const filteredBooks = books.filter((book) => {
+    const matchSearch =
+      book.title.toLowerCase().includes(search.toLowerCase()) ||
+      book.author.toLowerCase().includes(search.toLowerCase()) ||
+      (book.genre && book.genre.toLowerCase().includes(search.toLowerCase()));
 
-  const handleDelete = async (id, title) => {
-    if (!window.confirm(`Hapus buku "${title}" dari daftar?`)) return;
-    try {
-      await deleteBookItem(id);
-      if (onRefreshData) onRefreshData();
-    } catch (err) {
-      alert('Gagal menghapus buku: ' + err.message);
-    }
-  };
+    const matchStatus = statusFilter === 'Semua' || book.status === statusFilter;
+    const matchFormat =
+      formatFilter === 'Semua' ||
+      (formatFilter === 'fisik' && book.format === 'fisik') ||
+      (formatFilter === 'online' && book.format === 'online');
+
+    return matchSearch && matchStatus && matchFormat;
+  });
 
   return (
-    <div className="section" style={{ minHeight: '85vh', paddingTop: '4rem' }}>
-      <div className="container">
-        {/* Header */}
-        <div className="section-header" style={{ marginBottom: '2.5rem' }}>
-          <div className="section-tag">
-            <BookOpen size={13} />
-            <span>Reading Tracker & Bookshelf</span>
-          </div>
-          <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)' }}>
-            Daftar Buku & <span className="text-gradient-cyan">Catatan Bacaan</span>
-          </h1>
-          <p className="section-subtitle">
-            Koleksi buku-buku yang telah saya baca seputar Software Engineering, Cloud Architecture, Distributed Systems, dan Pengembangan Diri.
-          </p>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-8">
+      {/* Page Header */}
+      <div className="space-y-3">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+          <BookOpen size={14} />
+          <span>Katalog & Koleksi Bacaan</span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+          Daftar Buku Saya
+        </h1>
+        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
+          Koleksi buku fisik yang tersimpan di rak dan kotak saya, serta buku online/e-book yang pernah dan sedang saya telaah beserta catatan intisarinya.
+        </p>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Cari judul buku, penulis, atau genre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
 
-        {/* Stats Row */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '1.25rem',
-          marginBottom: '2.5rem'
-        }}>
-          <div className="glass-card" style={{ padding: '1.25rem 1.5rem' }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Total Koleksi
-            </span>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-bright)', marginTop: '0.25rem' }}>
-              {stats.total} <span style={{ fontSize: '1rem', color: 'var(--text-dim)' }}>buku</span>
-            </div>
-          </div>
-
-          <div className="glass-card" style={{ padding: '1.25rem 1.5rem', borderLeft: '3px solid #10b981' }}>
-            <span style={{ fontSize: '0.82rem', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Selesai Dibaca
-            </span>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#34d399', marginTop: '0.25rem' }}>
-              {stats.completed}
-            </div>
-          </div>
-
-          <div className="glass-card" style={{ padding: '1.25rem 1.5rem', borderLeft: '3px solid var(--accent-cyan)' }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Sedang Dibaca
-            </span>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent-cyan)', marginTop: '0.25rem' }}>
-              {stats.reading}
-            </div>
-          </div>
-
-          <div className="glass-card" style={{ padding: '1.25rem 1.5rem', borderLeft: '3px solid var(--accent-purple)' }}>
-            <span style={{ fontSize: '0.82rem', color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Wishlist / Rencana
-            </span>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#c084fc', marginTop: '0.25rem' }}>
-              {stats.wishlist}
-            </div>
-          </div>
-        </div>
-
-        {/* Excel Import / Export Toolbar */}
-        <div className="excel-toolbar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button
-              onClick={onOpenExcelImport}
-              className="btn btn-primary btn-sm"
-              id="btn-upload-excel"
-            >
-              <Upload size={15} />
-              <span>Upload via Excel (.xlsx / .csv)</span>
-            </button>
-
-            <button
-              onClick={downloadExcelTemplate}
-              className="btn btn-secondary btn-sm"
-              title="Unduh format template Excel"
-            >
-              <Download size={15} />
-              <span>Unduh Template Excel</span>
-            </button>
-
-            <button
-              onClick={() => exportBooksToExcel(books)}
-              className="btn btn-secondary btn-sm"
-              title="Ekspor list buku saat ini ke file Excel"
-            >
-              <FileSpreadsheet size={15} />
-              <span>Ekspor ke Excel</span>
-            </button>
-          </div>
-
-          {/* Search Box */}
-          <div style={{ position: 'relative', minWidth: 260 }}>
-            <Search size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
-            <input
-              type="text"
-              placeholder="Cari judul, penulis, genre..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="form-input"
-              style={{ paddingLeft: '2.5rem', paddingRight: '1rem', paddingBottom: '0.55rem', paddingTop: '0.55rem', borderRadius: 'var(--radius-full)' }}
-            />
-          </div>
-        </div>
-
-        {/* Status Filter Buttons */}
-        <div className="project-filters" style={{ marginBottom: '2.5rem' }}>
-          {['Semua', 'Selesai Dibaca', 'Sedang Dibaca', 'Wishlist'].map((status) => (
+        {/* Status Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          {statuses.map((status) => (
             <button
               key={status}
-              className={`filter-btn ${statusFilter === status ? 'active' : ''}`}
+              type="button"
               onClick={() => setStatusFilter(status)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                statusFilter === status
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
             >
-              {status} {status === 'Semua' ? `(${books.length})` : ''}
+              {status}
             </button>
           ))}
-        </div>
 
-        {/* Books Grid */}
-        {filteredBooks.length === 0 ? (
-          <div className="glass-card" style={{ padding: '3.5rem', textAlign: 'center', margin: '2rem 0' }}>
-            <BookOpen size={48} color="var(--text-dim)" style={{ marginBottom: '1rem' }} />
-            <h3 style={{ marginBottom: '0.5rem' }}>Tidak ada buku yang ditemukan</h3>
-            <p style={{ color: 'var(--text-muted)', maxWidth: 450, margin: '0 auto 1.5rem auto' }}>
-              Tidak ada buku yang cocok dengan pencarian atau filter status yang dipilih. Anda dapat mengunggah file Excel berisi list buku Anda!
-            </p>
-            <button onClick={onOpenExcelImport} className="btn btn-primary btn-sm">
-              <Upload size={15} />
-              <span>Upload Buku dari Excel Sekarang</span>
-            </button>
-          </div>
-        ) : (
-          <div className="books-grid">
-            {filteredBooks.map((book) => (
-              <div key={book.id} className="glass-card glass-card-interactive book-card">
-                {/* Book Cover */}
-                <div className="book-cover-container">
-                  <img
-                    src={book.cover || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80'}
-                    alt={book.title}
-                    className="book-cover-img"
-                    loading="lazy"
+          {/* Format Toggle */}
+          <div className="w-[1px] h-5 bg-slate-200 dark:border-slate-800 mx-1"></div>
+          <select
+            value={formatFilter}
+            onChange={(e) => setFormatFilter(e.target.value)}
+            className="px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none"
+          >
+            <option value="Semua">Semua Format</option>
+            <option value="fisik">Buku Fisik</option>
+            <option value="online">Buku Online</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Book Grid */}
+      {loading ? (
+        <div className="py-20 text-center text-sm text-slate-500">
+          Memuat daftar buku dari koleksi...
+        </div>
+      ) : filteredBooks.length === 0 ? (
+        <div className="py-20 text-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 p-8">
+          <BookOpen size={32} className="mx-auto text-slate-400 mb-2" />
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Tidak ada buku yang sesuai dengan pencarian.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSearch('');
+              setStatusFilter('Semua');
+              setFormatFilter('Semua');
+            }}
+            className="mt-3 text-xs text-blue-500 underline"
+          >
+            Reset Semua Filter
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+          {filteredBooks.map((book) => (
+            <div
+              key={book.id}
+              onClick={() => setSelectedBook(book)}
+              className="group flex flex-col p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:-translate-y-1 cursor-pointer shadow-xs"
+            >
+              {/* Cover Aspect Ratio 3:4 */}
+              <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-3 relative">
+                <img
+                  src={book.cover || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80'}
+                  alt={book.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+
+                {/* Status Badge */}
+                <span
+                  className={`absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-medium backdrop-blur-md shadow-xs ${
+                    book.status === 'Selesai Dibaca'
+                      ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/50'
+                      : book.status === 'Sedang Dibaca'
+                      ? 'bg-blue-950/80 text-blue-300 border border-blue-800/50'
+                      : 'bg-amber-950/80 text-amber-300 border border-amber-800/50'
+                  }`}
+                >
+                  {book.status}
+                </span>
+
+                {/* Format Pill (Fisik / Online) */}
+                <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider bg-black/70 text-slate-200 backdrop-blur-xs flex items-center gap-1">
+                  {book.format === 'fisik' ? (
+                    <>
+                      <MapPin size={10} />
+                      <span>Fisik</span>
+                    </>
+                  ) : (
+                    <>
+                      <Globe size={10} />
+                      <span>Online</span>
+                    </>
+                  )}
+                </span>
+              </div>
+
+              {/* Title & Author */}
+              <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 font-medium mb-1 line-clamp-1">
+                {book.genre || 'Umum'}
+              </span>
+              <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 line-clamp-2 leading-snug group-hover:text-blue-500 transition-colors">
+                {book.title}
+              </h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
+                {book.author}
+              </p>
+
+              {/* Rating row */}
+              <div className="flex items-center gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    size={11}
+                    className={
+                      s <= (book.rating || 5)
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-slate-300 dark:text-slate-700'
+                    }
                   />
-                  <span className={`book-status-pill ${
-                    book.status === 'Selesai Dibaca' ? 'book-status-read' :
-                    book.status === 'Sedang Dibaca' ? 'book-status-reading' : 'book-status-wishlist'
-                  }`}>
-                    {book.status}
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Book Detail Modal */}
+      {selectedBook && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden p-6 max-h-[90vh] overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => setSelectedBook(null)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex flex-col sm:flex-row gap-5 items-start">
+              <div className="w-28 sm:w-36 aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 border border-slate-200 dark:border-slate-700 shadow-md">
+                <img
+                  src={selectedBook.cover || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80'}
+                  alt={selectedBook.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-mono font-medium text-blue-600 dark:text-blue-400">
+                    {selectedBook.genre}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                    {selectedBook.status}
                   </span>
                 </div>
 
-                {/* Book Details */}
-                <div className="book-body">
-                  <div className="book-genre-tag">{book.genre || 'Teknologi'}</div>
-                  <h3 className="book-title">{book.title}</h3>
-                  <div className="book-author">oleh {book.author}</div>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-snug">
+                  {selectedBook.title}
+                </h2>
+                <p className="text-xs text-slate-500">Penulis: {selectedBook.author}</p>
 
-                  {/* Rating Stars */}
-                  <div className="book-stars-row">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        size={15}
-                        fill={star <= (book.rating || 5) ? '#fbbf24' : 'none'}
-                        color={star <= (book.rating || 5) ? '#fbbf24' : 'rgba(255,255,255,0.2)'}
-                      />
-                    ))}
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginLeft: '0.4rem' }}>
-                      ({book.rating || 5}/5)
-                    </span>
+                <div className="flex items-center gap-1 py-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      size={13}
+                      className={
+                        s <= (selectedBook.rating || 5)
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'text-slate-300 dark:text-slate-700'
+                      }
+                    />
+                  ))}
+                  <span className="text-xs text-slate-400 ml-1.5 font-mono">
+                    ({selectedBook.rating || 5}/5)
+                  </span>
+                </div>
+
+                {/* Details format */}
+                <div className="space-y-1 text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-400">Format:</span>
+                    <span className="font-medium capitalize">{selectedBook.format || 'Buku Fisik'}</span>
                   </div>
 
-                  {/* Notes / Quote */}
-                  {book.notes && (
-                    <div className="book-notes-box">
-                      "{book.notes}"
-                    </div>
-                  )}
-
-                  {/* Footer */}
-                  <div className="book-footer-info">
-                    <span>Tahun: {book.year || '2025'}</span>
-                    {isAdmin && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          style={{ padding: '0.25rem 0.5rem' }}
-                          onClick={() => onEditBook(book)}
-                          title="Edit Buku"
+                  {selectedBook.format === 'fisik' ? (
+                    <>
+                      {selectedBook.publisher && (
+                        <div className="flex items-center gap-1.5">
+                          <Building size={12} className="text-slate-400" />
+                          <span className="text-slate-400">Penerbit:</span>
+                          <span>{selectedBook.publisher}</span>
+                        </div>
+                      )}
+                      {selectedBook.location && (
+                        <div className="flex items-center gap-1.5">
+                          <MapPin size={12} className="text-blue-500" />
+                          <span className="text-slate-400">Lokasi:</span>
+                          <span className="font-medium text-blue-600 dark:text-blue-400">
+                            {selectedBook.location}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    selectedBook.onlineUrl && (
+                      <div className="pt-1">
+                        <a
+                          href={selectedBook.onlineUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-xs font-medium hover:underline"
                         >
-                          <Edit3 size={13} />
-                        </button>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          style={{ padding: '0.25rem 0.5rem' }}
-                          onClick={() => handleDelete(book.id, book.title)}
-                          title="Hapus Buku"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                          <Globe size={13} />
+                          <span>Buka Tautan Buku Online</span>
+                          <ExternalLink size={11} />
+                        </a>
                       </div>
-                    )}
-                  </div>
+                    )
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Notes Section */}
+            {selectedBook.notes && (
+              <div className="mt-5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+                <span className="font-semibold block mb-1 text-slate-900 dark:text-slate-100">
+                  Catatan Pribadi & Pelajaran Utama:
+                </span>
+                <p className="italic">"{selectedBook.notes}"</p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

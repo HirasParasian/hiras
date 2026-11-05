@@ -1,126 +1,129 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, Link, useLocation } from 'react-router-dom';
-import { Shield, ShieldCheck, Menu, X, ArrowUpRight, LogOut, BookOpen } from 'lucide-react';
+import React, { useState } from 'react';
+import { NavLink, Link } from 'react-router-dom';
+import { BookOpen, PenTool, User, Shield, Menu, X, ShieldCheck } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
+import { useAuth } from '../context/AuthContext';
 
-export default function Navbar({ user, isAdmin, onOpenAdmin, onLogout }) {
-  const [scrolled, setScrolled] = useState(false);
+export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation();
+  const { isAdmin } = useAuth();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [location.pathname]);
-
-  const navItems = [
-    { label: 'Home', path: '/' },
-    { label: 'Tentang', path: '/about' },
-    { label: 'Portofolio', path: '/projects' },
-    { label: 'Buku Bacaan', path: '/books', badge: 'New' },
-    { label: 'Blog', path: '/blog' },
-    { label: 'Kontak', path: '/contact' },
+  const navLinks = [
+    { label: 'Beranda', to: '/' },
+    { label: 'Daftar Buku', to: '/list-book', icon: BookOpen },
+    { label: 'Artikel', to: '/artikel', icon: PenTool },
+    { label: 'Tentang & Kontak', to: '/me', icon: User },
   ];
 
   return (
-    <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-      <div className="container nav-wrapper">
-        <Link to="/" className="nav-logo" onClick={() => setMobileMenuOpen(false)}>
-          <div className="logo-badge">HP</div>
-          <div>
-            <span style={{ color: 'var(--text-bright)' }}>Hiras</span>
-            <span className="text-gradient-cyan">.dev</span>
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        {/* Brand Logo */}
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 font-bold text-lg tracking-tight hover:opacity-90 transition-opacity"
+        >
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-black text-sm shadow-sm">
+            HP
+          </div>
+          <div className="flex flex-col">
+            <span className="leading-tight text-slate-900 dark:text-slate-100">
+              Hiras Parasian
+            </span>
+            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+              software engineer
+            </span>
           </div>
         </Link>
 
-        {/* Desktop Nav Links */}
-        <nav>
-          <ul className={`nav-links ${mobileMenuOpen ? 'open' : ''}`}>
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  end={item.path === '/'}
-                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                >
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <span style={{
-                      fontSize: '0.68rem',
-                      fontFamily: 'var(--font-mono)',
-                      background: 'rgba(0, 242, 254, 0.15)',
-                      color: 'var(--accent-cyan)',
-                      border: '1px solid rgba(0, 242, 254, 0.3)',
-                      padding: '0.1rem 0.4rem',
-                      borderRadius: 'var(--radius-full)'
-                    }}>
-                      {item.badge}
-                    </span>
-                  )}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navLinks.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) =>
+                  `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
+                  }`
+                }
+              >
+                {Icon && <Icon size={15} />}
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
-        {/* Actions */}
-        <div className="nav-actions">
-          {isAdmin ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <button
-                className="btn btn-outline-glow btn-sm"
-                onClick={onOpenAdmin}
-                title="Buka Admin CMS"
-                id="btn-open-admin"
-              >
-                <ShieldCheck size={16} />
-                <span>Admin CMS</span>
-              </button>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={onLogout}
-                title="Keluar"
-                style={{ padding: '0.45rem' }}
-              >
-                <LogOut size={15} />
-              </button>
-            </div>
-          ) : (
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={onOpenAdmin}
-              title="Admin Login"
-              id="btn-admin-login"
-            >
-              <Shield size={15} />
-              <span>{user ? 'Admin' : 'Login'}</span>
-            </button>
-          )}
+        {/* Right Actions: Theme Toggle + Admin Link + Mobile Menu Toggle */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
 
-          <Link to="/contact" className="btn btn-primary btn-sm" style={{ display: 'none', md: 'flex' }}>
-            <span>Hire Me</span>
-            <ArrowUpRight size={15} />
+          <Link
+            to="/admin"
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              isAdmin
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-400'
+                : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+            title="Panel Admin"
+          >
+            {isAdmin ? <ShieldCheck size={14} /> : <Shield size={14} />}
+            <span>{isAdmin ? 'Admin' : 'Login'}</span>
           </Link>
 
+          {/* Mobile Hamburger Button */}
           <button
-            className="nav-mobile-toggle"
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle Navigation Menu"
+            className="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Buka menu navigasi"
           >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden px-4 pt-2 pb-4 space-y-1 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 shadow-lg">
+          {navLinks.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900'
+                  }`
+                }
+              >
+                {Icon && <Icon size={16} />}
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+
+          <Link
+            to="/admin"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 border-t border-slate-100 dark:border-slate-800 pt-2 mt-2"
+          >
+            <Shield size={16} />
+            <span>{isAdmin ? 'Kelola Konten (Admin)' : 'Login Admin'}</span>
+          </Link>
+        </div>
+      )}
     </header>
   );
 }

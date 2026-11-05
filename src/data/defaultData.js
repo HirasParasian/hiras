@@ -1,251 +1,158 @@
 export const defaultProfile = {
-  name: "Hiras Parasian",
-  title: "Full-Stack Software Engineer & Creative Technologist",
-  statusBadge: "Available for New Projects & Roles",
-  bio: "Halo! Saya Hiras Parasian, seorang Software Engineer yang berfokus membangun web application berskala tinggi, antarmuka pengguna yang menakjubkan, serta arsitektur cloud serverless yang efisien.",
-  longBio: "Saya memiliki passion yang mendalam dalam menggabungkan estetika desain visual dengan kode performa tinggi. Mulai dari membangun REST & real-time APIs di backend hingga merancang micro-interactions dan animasi mulus di frontend. Saya terbiasa bekerja dengan ekosistem React, Node.js, Firebase, dan Cloudinary.",
-  location: "Indonesia",
-  email: "hirasparasian@gmail.com",
-  github: "https://github.com/HirasParasian",
-  linkedin: "https://linkedin.com/in/hirasparasian",
-  whatsapp: "https://wa.me/6281234567890",
-  resumeUrl: "#",
+  name: 'Hiras Parasian',
+  title: 'Software Engineer',
+  tagline: 'Membangun sistem web modern, mencatat buku bacaan, dan menulis refleksi teknologi.',
+  statusBadge: 'Tersedia untuk Diskusi & Proyek',
+  bio: 'Halo! Saya Hiras Parasian, seorang software engineer yang antusias terhadap pengembangan web modern, arsitektur cloud serverless, dan UI/UX yang bersih. Di luar koding, saya gemar membaca buku dan mencatat esensinya dalam tulisan.',
+  location: 'Jakarta, ID',
+  email: 'hirasparasian@gmail.com',
+  github: 'https://github.com/hirasparasian',
+  instagram: 'https://instagram.com/hiras.pds',
   stats: [
-    { label: "Proyek Selesai", value: "24+" },
-    { label: "Tahun Pengalaman", value: "3+" },
-    { label: "Tech Stack", value: "15+" },
-    { label: "Kepuasan Klien", value: "99%" },
+    { label: 'Buku di Rak', value: '38+' },
+    { label: 'Artikel Diterbitkan', value: '12+' },
+    { label: 'Tahun Pengalaman', value: '3+' },
+    { label: 'Proyek Selesai', value: '20+' },
   ],
-  skillsCategories: [
-    {
-      category: "Frontend Excellence",
-      skills: ["React.js", "JavaScript (ESNext)", "TypeScript", "HTML5 & Semantic SEO", "CSS3 / Modern CSS Architecture", "Vite Ecosystem", "Responsive & Mobile-First"]
-    },
-    {
-      category: "Backend & Cloud",
-      skills: ["Node.js", "Firebase (Auth, Firestore, Cloud Functions)", "Cloudinary Media Pipeline", "RESTful APIs", "Serverless Architecture", "Express.js"]
-    },
-    {
-      category: "Databases & Storage",
-      skills: ["Firestore NoSQL", "PostgreSQL", "MongoDB", "Cloudinary CDN", "Local Storage & State Caching"]
-    },
-    {
-      category: "Workflow & Tools",
-      skills: ["Git & GitHub Actions", "CI/CD & GitHub Pages", "VS Code & Antigravity", "Figma to Code", "Performance Optimization"]
-    }
+  interests: [
+    'Web Architecture & React Ecosystem',
+    'Distributed Systems & Cloud',
+    'Productivity & Atomic Habits',
+    'Technical Writing & Open Source',
   ],
-  experiences: [
-    {
-      year: "2024 — Sekarang",
-      role: "Lead Full-Stack Web Developer",
-      company: "Independent / Creative Tech Projects",
-      desc: "Merancang dan mendeploy aplikasi web modern interaktif berbasis React, Vite, Firebase, dan integrasi Cloudinary CDN."
-    },
-    {
-      year: "2023 — 2024",
-      role: "Frontend & Cloud Application Engineer",
-      company: "Digital Solutions Studio",
-      desc: "Mengembangkan dashboard interaktif, sistem autentikasi terpusat, dan integrasi media multi-format berkecepatan tinggi."
-    },
-    {
-      year: "2021 — 2023",
-      role: "Junior Web Developer & UI Designer",
-      company: "Tech Agency",
-      desc: "Membangun landing page responsif, implementasi UI/UX, dan optimalisasi SEO performa website."
-    }
-  ],
-  education: [
-    {
-      year: "2020 — 2024",
-      degree: "Sarjana Komputer (S.Kom) / Ilmu Komputer",
-      institution: "Universitas",
-      desc: "Fokus pada Rekayasa Perangkat Lunak, Arsitektur Sistem Informasi, dan Algoritma Pemrograman."
-    }
-  ]
 };
-
-export const defaultProjects = [
-  {
-    id: "proj-1",
-    title: "ListBook — Library & Reading Management",
-    category: "Full Stack",
-    description: "Aplikasi manajemen buku dan tracking bacaan real-time yang terhubung langsung dengan Firebase Firestore dan Cloudinary untuk cover book asset optimization.",
-    image: "https://images.unsplash.com/photo-1507842229451-7f01be7a50d7?auto=format&fit=crop&w=1200&q=80",
-    tags: ["React", "Firebase Auth", "Firestore", "Cloudinary", "Vite"],
-    liveUrl: "https://github.com/HirasParasian/hiras",
-    githubUrl: "https://github.com/HirasParasian/hiras",
-    featured: true,
-    order: 1,
-    metrics: "Real-time sync & fast upload"
-  },
-  {
-    id: "proj-2",
-    title: "NexusFlow — AI Cloud Dashboard",
-    category: "Cloud / AI",
-    description: "Dashboard analitik interaktif dengan visualisasi data telemetri, metrik performa sistem, dan integrasi cloud serverless.",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80",
-    tags: ["React", "Vite", "Serverless", "Glassmorphism", "Chart.js"],
-    liveUrl: "https://github.com/HirasParasian/hiras",
-    githubUrl: "https://github.com/HirasParasian/hiras",
-    featured: true,
-    order: 2,
-    metrics: "99.9% Uptime Analytics"
-  },
-  {
-    id: "proj-3",
-    title: "AuraPay — Modern Digital Payment Gateway",
-    category: "Fintech",
-    description: "Simulasi pembayaran modern dengan transaksi instan, otentikasi multi-faktor, dan riwayat transaksi dengan proteksi keamanan tinggi.",
-    image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80",
-    tags: ["React", "Firebase Security Rules", "REST API", "Tailored CSS"],
-    liveUrl: "https://github.com/HirasParasian/hiras",
-    githubUrl: "https://github.com/HirasParasian/hiras",
-    featured: false,
-    order: 3,
-    metrics: "<100ms Latency Flow"
-  },
-  {
-    id: "proj-4",
-    title: "OmniCart — Creative Headless E-Commerce",
-    category: "Full Stack",
-    description: "Toko online headless dengan performa kilat, integrasi Cloudinary CDN dinamis untuk katalog produk, dan cart state persistence.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
-    tags: ["React", "Cloudinary Image CDN", "State Management", "Vite"],
-    liveUrl: "https://github.com/HirasParasian/hiras",
-    githubUrl: "https://github.com/HirasParasian/hiras",
-    featured: false,
-    order: 4,
-    metrics: "100/100 Lighthouse Performance"
-  }
-];
-
-export const defaultPosts = [
-  {
-    id: "post-1",
-    title: "Membangun Website Pribadi Modern dengan React, Firebase, dan Cloudinary",
-    category: "Web Development",
-    readTime: "5 menit baca",
-    publishedAt: "2026-10-20",
-    summary: "Panduan lengkap bagaimana mengintegrasikan backend serverless gratis tanpa biaya hosting bulanan menggunakan GitHub Pages, Firestore, dan Cloudinary.",
-    content: `
-Membangun portofolio pribadi di era modern tidak lagi membutuhkan server VPS mahal atau setup backend yang rumit. Dengan kombinasi **Vite + React** yang dihosting secara gratis di **GitHub Pages**, kita mendapatkan kecepatan loading super instan karena semua aset disajikan dalam bentuk static SPA yang di-cache di CDN global.
-
-### Mengapa Memilih Firebase & Cloudinary?
-
-1. **Firebase Firestore & Auth**: Menyediakan database real-time NoSQL dan autentikasi admin yang sangat aman. Cukup tentukan email admin Anda, dan Anda memiliki CMS pribadi langsung di dalam website!
-2. **Cloudinary Media Pipeline**: Mengunggah gambar beresolusi tinggi langsung dari browser menggunakan *Unsigned Upload Preset*. Cloudinary secara otomatis melakukan kompresi format modern (WebP/AVIF) dengan parameter \`f_auto,q_auto\`.
-3. **Deployment GitHub Pages Otomatis**: Dengan satu perintah \`npm run deploy\`, kode otomatis ter-bundle dan online dalam hitungan detik.
-
-### Langkah Penting Keamanan
-
-Pastikan Anda menyetel aturan keamanan (*Firestore Security Rules*) agar hanya admin yang dapat membuat atau menghapus artikel dan proyek, sementara publik hanya memiliki akses baca (\`read\`).
-    `,
-    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80",
-    tags: ["React", "Firebase", "Cloudinary", "GitHub Pages"]
-  },
-  {
-    id: "post-2",
-    title: "Optimasi Unsigned Upload Cloudinary pada Client-Side Web App",
-    category: "Cloud Architecture",
-    readTime: "4 menit baca",
-    publishedAt: "2026-10-15",
-    summary: "Cara aman dan efisien melakukan upload gambar langsung dari browser ke Cloudinary tanpa mengekspos API Secret Anda.",
-    content: `
-Banyak pengembang ragu mengizinkan upload langsung dari browser karena takut API Secret mereka bocor. Untungnya, Cloudinary menyediakan fitur **Unsigned Upload Preset**.
-
-Dengan Unsigned Preset:
-- Secret API Key tetap aman di server atau tidak perlu dibagikan ke client.
-- Preset dapat dikonfigurasi untuk membatasi ukuran file maksimum (misal 5MB), tipe file yang diizinkan (hanya gambar .jpg, .png, .webp), dan folder penyimpanan khusus.
-- Di sisi frontend, kita cukup melakukan HTTP POST multipart FormData ke endpoint API Cloudinary, melacak progress bar upload, dan langsung menerima link CDN yang sudah teroptimasi!
-    `,
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
-    tags: ["Cloudinary", "Performance", "Security", "Frontend"]
-  },
-  {
-    id: "post-3",
-    title: "Desain Glassmorphism & Micro-Animations: Kunci Website yang Memikat",
-    category: "UI/UX Design",
-    readTime: "6 menit baca",
-    publishedAt: "2026-10-08",
-    summary: "Bagaimana memadukan nuansa dark mode, blur backdrop-filter, dan CSS glowing effects untuk menciptakan first impression yang berkesan.",
-    content: `
-Kesan pertama pengunjung website ditentukan dalam 3 detik pertama. Menggunakan warna-warna gelap berkelas dipadukan dengan aksen neon bergradien (seperti cyan, ungu elektrik, dan emerald) menghasilkan tampilan futuristik namun tetap elegan.
-
-Teknik penting:
-1. **Backdrop Filter Glassmorphism**: Memberikan rasa kedalaman spasial (*depth*) dengan border semi-transparan tipis.
-2. **Interactive Hover Lift**: Memberikan sensasi bahwa setiap elemen responsif terhadap sentuhan kursor pengguna.
-3. **Smooth Scroll & Navigation Transitions**: Memastikan perpindahan halaman terasa natural tanpa layar berkedip.
-    `,
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
-    tags: ["Design", "CSS", "UI/UX", "Glassmorphism"]
-  }
-];
 
 export const defaultBooks = [
   {
-    id: "book-1",
-    title: "Designing Data-Intensive Applications",
-    author: "Martin Kleppmann",
-    genre: "Cloud & Distributed Systems",
+    id: 'local-book-1',
+    title: 'Designing Data-Intensive Applications',
+    author: 'Martin Kleppmann',
+    genre: 'Sistem Terdistribusi',
+    status: 'Sedang Dibaca',
     rating: 5,
-    status: "Sedang Dibaca",
-    year: "2025",
-    notes: "Buku wajib yang mengupas tuntas arsitektur penyimpanan data, replikasi, partisi, transaksi, dan konsistensi sistem terdistribusi modern.",
-    cover: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80"
+    format: 'fisik',
+    publisher: "O'Reilly Media",
+    location: 'Rak Utama - Baris 1',
+    onlineUrl: '',
+    notes: 'Kajian mendalam tentang konsistensi data, replikasi, partisi, dan keandalan sistem berskala besar.',
+    cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
+    year: '2024',
   },
   {
-    id: "book-2",
-    title: "Clean Code: A Handbook of Agile Software Craftsmanship",
-    author: "Robert C. Martin",
-    genre: "Software Engineering",
+    id: 'local-book-2',
+    title: 'Clean Code: A Handbook of Agile Software Craftsmanship',
+    author: 'Robert C. Martin',
+    genre: 'Rekayasa Perangkat Lunak',
+    status: 'Selesai Dibaca',
     rating: 5,
-    status: "Selesai Dibaca",
-    year: "2024",
-    notes: "Pondasi penting tentang penamaan variabel yang bermakna, fungsi yang fokus satu tanggung jawab, dan refactoring berkelanjutan.",
-    cover: "https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=600&q=80"
+    format: 'fisik',
+    publisher: 'Prentice Hall',
+    location: 'Rak Utama - Baris 2',
+    onlineUrl: '',
+    notes: 'Standar emas untuk penamaan variabel, fungsi kecil yang fokus, dan etika kepenulisan kode bersih.',
+    cover: 'https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=600&q=80',
+    year: '2023',
   },
   {
-    id: "book-3",
-    title: "Atomic Habits",
-    author: "James Clear",
-    genre: "Productivity & Mindset",
+    id: 'local-book-3',
+    title: 'Atomic Habits',
+    author: 'James Clear',
+    genre: 'Pengembangan Diri',
+    status: 'Selesai Dibaca',
     rating: 5,
-    status: "Selesai Dibaca",
-    year: "2023",
-    notes: "Perubahan 1% setiap hari yang berakumulasi menjadi hasil eksponensial dalam karir pemrograman dan kedisiplinan hidup.",
-    cover: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80"
+    format: 'online',
+    publisher: 'Penguin Audio / Kindle',
+    location: '',
+    onlineUrl: 'https://jamesclear.com/atomic-habits',
+    notes: 'Kekuatan perubahan 1% setiap hari. Fondasi disiplin dalam menyelesaikan proyek-proyek besar.',
+    cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80',
+    year: '2023',
   },
   {
-    id: "book-4",
-    title: "The Pragmatic Programmer (20th Anniversary Edition)",
-    author: "David Thomas & Andrew Hunt",
-    genre: "Software Engineering",
+    id: 'local-book-4',
+    title: 'The Pragmatic Programmer (20th Anniversary Edition)',
+    author: 'David Thomas & Andrew Hunt',
+    genre: 'Rekayasa Perangkat Lunak',
+    status: 'Selesai Dibaca',
     rating: 5,
-    status: "Selesai Dibaca",
-    year: "2024",
-    notes: "Nasihat abadi bagi programmer untuk selalu berfikir kritis, adaptif, menguasai editor, dan menjaga codebase tetap fleksibel.",
-    cover: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80"
+    format: 'fisik',
+    publisher: 'Addison-Wesley',
+    location: 'Kotak Koleksi Khusus A',
+    onlineUrl: '',
+    notes: 'Filosofi pragmatis: jangan biarkan jendela pecah di codebase Anda, kuasai perkakas kerja, dan selalu uji kode.',
+    cover: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
+    year: '2024',
   },
   {
-    id: "book-5",
-    title: "System Design Interview – An Insider's Guide",
-    author: "Alex Xu",
-    genre: "Architecture & Systems",
+    id: 'local-book-5',
+    title: 'System Design Interview – An Insider’s Guide',
+    author: 'Alex Xu',
+    genre: 'Arsitektur Sistem',
+    status: 'Sedang Dibaca',
     rating: 5,
-    status: "Sedang Dibaca",
-    year: "2025",
-    notes: "Visualisasi langkah demi langkah mendesain sistem berskala jutaan pengguna: Rate limiter, chat system, search autocomplete, dan CDN.",
-    cover: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80"
+    format: 'online',
+    publisher: 'ByteByteGo',
+    location: '',
+    onlineUrl: 'https://bytebytego.com/',
+    notes: 'Visualisasi luar biasa untuk mendesain Rate Limiter, Key-Value Store terdistribusi, dan CDN caching.',
+    cover: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80',
+    year: '2025',
   },
   {
-    id: "book-6",
-    title: "Building Microservices: Designing Fine-Grained Systems",
-    author: "Sam Newman",
-    genre: "Cloud & Microservices",
+    id: 'local-book-6',
+    title: 'Building Microservices: Designing Fine-Grained Systems',
+    author: 'Sam Newman',
+    genre: 'Cloud & Arsitektur',
+    status: 'Wishlist',
     rating: 4,
-    status: "Wishlist",
-    year: "2025",
-    notes: "Rencana bacaan untuk memperdalam pemisahan domain logic dan komunikasi antar service event-driven.",
-    cover: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=600&q=80"
-  }
+    format: 'fisik',
+    publisher: "O'Reilly Media",
+    location: 'Wishlist Beli 2026',
+    onlineUrl: '',
+    notes: 'Buku referensi penting sebelum memecah arsitektur monolit ke layanan independen.',
+    cover: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=600&q=80',
+    year: '2025',
+  },
+];
+
+export const defaultArticles = [
+  {
+    id: 'local-art-1',
+    shortId: 'x7k9p2m',
+    title: 'Membangun Website Pribadi Modern dengan Firebase dan Cloudinary',
+    summary: 'Panduan lengkap bagaimana mengintegrasikan backend serverless tanpa biaya hosting bulanan menggunakan GitHub Pages, Firestore, dan Cloudinary.',
+    content: `<h2>Mengapa Memilih Pendekatan Ini?</h2><p>Membangun website pribadi dan katalog catatan di era modern tidak lagi membutuhkan VPS mahal atau arsitektur server yang rumit. Dengan kombinasi <strong>React + Vite</strong> yang dihosting di <strong>GitHub Pages</strong>, kita mendapatkan kecepatan loading super instan berkat CDN global.</p><h3>Tiga Pilar Utama Arsitektur</h3><ul><li><strong>Firebase Authentication &amp; Firestore:</strong> Mengamankan panel admin secara eksklusif untuk pemilik website dan menyimpan data buku serta artikel secara real-time.</li><li><strong>Cloudinary Unsigned Upload:</strong> Mengunggah sampul buku dan gambar langsung dari peramban tanpa mengekspos API secret rahasia.</li><li><strong>Tiptap WYSIWYG Editor:</strong> Menulis artikel panjang dengan pengalaman visual layaknya Microsoft Word atau Notion.</li></ul><blockquote>Website pribadi adalah taman digital Anda. Rawatlah dengan kode yang bersih dan tulisan yang bermanfaat.</blockquote>`,
+    tags: ['Web Development', 'React', 'Firebase', 'Arsitektur'],
+    status: 'terbit',
+    coverImage: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+    readTime: '4 menit baca',
+    createdAt: new Date('2026-10-15T10:00:00Z'),
+    publishedAt: new Date('2026-10-15T10:00:00Z'),
+  },
+  {
+    id: 'local-art-2',
+    shortId: 'v3b8r1w',
+    title: 'Manfaat Mencatat Buku yang Telah Kita Selesaikan',
+    summary: 'Refleksi mengapa membuat katalog dan ringkasan pribadi terhadap setiap buku yang dibaca melipatgandakan retensi ingatan kita.',
+    content: `<h2>Membaca Tanpa Mencatat adalah Ilusi Memahami</h2><p>Pernahkah Anda menghabiskan satu buku tebal dalam satu minggu, lalu sebulan kemudian kesulitan menjelaskan apa isi gagasan pokoknya? Itulah mengapa membuat <em>reading tracker</em> dan katalog catatan pribadi sangat transformatif.</p><h3>Bagaimana Saya Mengorganisir Rak Buku Digital</h3><ol><li><strong>Format &amp; Lokasi:</strong> Menandai apakah buku tersebut berupa salinan fisik di rak kamar atau e-book/link daring.</li><li><strong>Rating &amp; Catatan Singkat:</strong> Menuliskan satu paragraf esensi yang paling membekas dalam hidup saya dari buku tersebut.</li><li><strong>Status Baca:</strong> Memisahkan mana yang sedang aktif dibaca, selesai, maupun daftar keinginan masa depan.</li></ol>`,
+    tags: ['Membaca', 'Produktivitas', 'Refleksi'],
+    status: 'terbit',
+    coverImage: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80',
+    readTime: '3 menit baca',
+    createdAt: new Date('2026-10-22T08:30:00Z'),
+    publishedAt: new Date('2026-10-22T08:30:00Z'),
+  },
+  {
+    id: 'local-art-3',
+    shortId: 'd5q2n7z',
+    title: 'Evolusi Desain UI: Dari Kompleksitas Menuju Minimalisme Fungsional',
+    summary: 'Menelaah tren antarmuka modern yang mengutamakan kenyamanan membaca, kontras warna yang ramah mata, dan tipografi tegas.',
+    content: `<h2>Desain yang Tidak Menghalangi Pembaca</h2><p>Antarmuka terbaik seringkali adalah antarmuka yang tidak Anda sadari keberadaannya. Konten tulisan dan sampul buku harus menjadi pemeran utama, bukan efek animasi yang berlebihan.</p><p>Dengan dukungan dual tema (terang dan gelap), pengguna bebas membaca di siang hari yang terik maupun di malam hari tanpa membuat mata lelah.</p>`,
+    tags: ['UI/UX', 'Desain', 'Web'],
+    status: 'draf',
+    coverImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
+    readTime: '5 menit baca',
+    createdAt: new Date('2026-11-01T14:00:00Z'),
+    publishedAt: null,
+  },
 ];
