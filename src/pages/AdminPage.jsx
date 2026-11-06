@@ -21,6 +21,9 @@ import {
   FileSpreadsheet,
   Download,
   BarChart3,
+  User,
+  Sparkles,
+  Mail,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -32,6 +35,8 @@ import {
   deleteArticleItem,
   fetchSiteStats,
   saveSiteStats,
+  fetchBioProfile,
+  saveBioProfile,
   ADMIN_EMAIL,
 } from '../services/firebase';
 import { calculateExperienceYears } from '../utils/stats';
@@ -41,6 +46,7 @@ import ExcelImportModal from '../components/ExcelImportModal';
 import { downloadBookTemplate } from '../services/excelService';
 import { generateShortId } from '../utils/shortId';
 import { defaultBooks, defaultArticles } from '../data/defaultData';
+import { bioProfile } from '../data/linksData';
 
 export default function AdminPage() {
   const { currentUser, isAdmin, loading: authLoading, loginEmail, loginGoogle, logout } = useAuth();
@@ -101,6 +107,10 @@ export default function AdminPage() {
   const [siteStats, setSiteStats] = useState({ completedProjects: '20+' });
   const [savingStats, setSavingStats] = useState(false);
 
+  // Bio profile state
+  const [profileForm, setProfileForm] = useState(bioProfile);
+  const [savingProfile, setSavingProfile] = useState(false);
+
   const showFeedback = (type, message) => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback({ type: '', message: '' }), 4000);
@@ -112,16 +122,20 @@ export default function AdminPage() {
       setLoadingBooks(true);
       setLoadingArticles(true);
 
-      const [cloudBooks, cloudArticles, cloudStats] = await Promise.all([
+      const [cloudBooks, cloudArticles, cloudStats, cloudProfile] = await Promise.all([
         fetchBooks(),
         fetchArticles(false),
         fetchSiteStats(),
+        fetchBioProfile(),
       ]);
 
       setBooks(Array.isArray(cloudBooks) && cloudBooks.length > 0 ? cloudBooks : (cloudBooks || []));
       setArticles(Array.isArray(cloudArticles) ? cloudArticles : []);
       if (cloudStats && cloudStats.completedProjects) {
         setSiteStats(cloudStats);
+      }
+      if (cloudProfile && cloudProfile.name) {
+        setProfileForm((prev) => ({ ...prev, ...cloudProfile }));
       }
     } catch (err) {
       console.warn('Error loading data in admin, using local fallbacks:', err);
@@ -130,6 +144,20 @@ export default function AdminPage() {
     } finally {
       setLoadingBooks(false);
       setLoadingArticles(false);
+    }
+  };
+
+  const handleSaveProfile = async (e) => {
+    if (e) e.preventDefault();
+    setSavingProfile(true);
+    try {
+      await saveBioProfile(profileForm);
+      showFeedback('success', 'Profil Bio berhasil diperbarui dan disimpan ke database!');
+    } catch (err) {
+      console.error('Save profile error:', err);
+      showFeedback('error', 'Gagal menyimpan profil: ' + (err.message || 'Error'));
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -574,6 +602,19 @@ export default function AdminPage() {
         >
           <PenTool size={16} />
           <span>Tulis & Kelola Artikel ({articles.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('profile')}
+          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
+            activeTab === 'profile'
+              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <User size={16} />
+          <span>Kelola Profil Bio</span>
         </button>
 
         <button
@@ -1228,6 +1269,244 @@ export default function AdminPage() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          TAB: KELOLA PROFIL BIO (/me & BERANDA)
+         ========================================== */}
+      {activeTab === 'profile' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Form Kolom Kiri: Input Field */}
+            <div className="lg:col-span-7 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-5">
+              <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
+                <h2 className="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <User size={18} className="text-blue-500" />
+                  <span>Edit Profil Bio (/me) & Pengantar Beranda</span>
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Perubahan akan disimpan ke database Firestore dan otomatis meng-update halaman /me dan bagian perkenalan di beranda.
+                </p>
+              </div>
+
+              <form onSubmit={handleSaveProfile} className="space-y-4">
+                {/* Avatar Field */}
+                <div className="space-y-2 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                    Foto Avatar / Logo Profil
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="w-16 h-16 rounded-full overflow-hidden bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shrink-0 shadow-xs flex items-center justify-center">
+                      <img
+                        src={profileForm.avatar || '/icon-h.png'}
+                        alt="Avatar Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 w-full space-y-2">
+                      <ImageUpload
+                        onUploadComplete={(url) => setProfileForm({ ...profileForm, avatar: url })}
+                        folder="avatars"
+                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={profileForm.avatar || ''}
+                          onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })}
+                          placeholder="Atau ketik URL gambar avatar..."
+                          className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setProfileForm({ ...profileForm, avatar: '/icon-h.png' })}
+                          className="px-2.5 py-1.5 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors whitespace-nowrap cursor-pointer"
+                          title="Reset ke icon Hiras default"
+                        >
+                          Logo Default
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Nama Lengkap */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Nama Lengkap
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={profileForm.name || ''}
+                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                    placeholder="Contoh: Hiras Parasian"
+                    className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Tagline / Badge */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Tagline / Pill Badge
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.tagline || ''}
+                    onChange={(e) => setProfileForm({ ...profileForm, tagline: e.target.value })}
+                    placeholder="Contoh: Software Engineer • Penikmat Buku"
+                    className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Status Ketersediaan */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Status Ketersediaan (Badge Beranda & Titik Hijau)
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.status || ''}
+                    onChange={(e) => setProfileForm({ ...profileForm, status: e.target.value })}
+                    placeholder="Contoh: Tersedia untuk kolaborasi & proyek"
+                    className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Lokasi & Email */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Lokasi
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.location || ''}
+                      onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
+                      placeholder="Contoh: Jakarta, ID"
+                      className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Email Kontak
+                    </label>
+                    <input
+                      type="email"
+                      value={profileForm.email || ''}
+                      onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                      placeholder="Contoh: hirasparasian@gmail.com"
+                      className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Bio Paragraf */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Bio Singkat (Deskripsi Diri)
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={profileForm.bio || ''}
+                    onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                    placeholder="Tuliskan deskripsi ringkas tentang minat, fokus teknologi, dan filosofi Anda..."
+                    className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 leading-relaxed"
+                  />
+                </div>
+
+                {/* Submit button */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={savingProfile}
+                    className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+                  >
+                    {savingProfile ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>Menyimpan ke Database...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={16} />
+                        <span>Simpan Perubahan Profil Bio</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Kolom Kanan: Pratinjau Langsung (Live Preview) */}
+            <div className="lg:col-span-5 space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <Eye size={13} className="text-blue-500" />
+                  <span>Pratinjau Halaman /me</span>
+                </span>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  Live Preview
+                </span>
+              </div>
+
+              <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center text-center space-y-4">
+                {/* Avatar */}
+                <div className="relative group">
+                  <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 shadow-lg">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-950 flex items-center justify-center">
+                      <img
+                        src={profileForm.avatar || '/icon-h.png'}
+                        alt={profileForm.name || 'Avatar'}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <span
+                    className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 shadow-xs"
+                    title={profileForm.status || 'Tersedia'}
+                  ></span>
+                </div>
+
+                {/* Name & Badge */}
+                <div className="space-y-1.5">
+                  <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-100">
+                    {profileForm.name || 'Nama Anda'}
+                  </h3>
+
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                    <Sparkles size={11} />
+                    <span>{profileForm.tagline || 'Tagline / Badge'}</span>
+                  </div>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto pt-1">
+                    {profileForm.bio || 'Deskripsi bio akan tampil di sini.'}
+                  </p>
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-wrap items-center justify-center gap-2 text-xs pt-1">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-xs">
+                    <MapPin size={12} className="text-blue-500" />
+                    <span>{profileForm.location || 'Lokasi'}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-xs">
+                    <Mail size={12} className="text-blue-500" />
+                    <span className="truncate max-w-[130px]">{profileForm.email || 'Email'}</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 w-full border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-400">
+                  <span>Status: </span>
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">
+                    "{profileForm.status || 'Tersedia untuk kolaborasi & proyek'}"
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

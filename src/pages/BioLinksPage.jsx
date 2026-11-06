@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Globe,
   BookOpen,
@@ -20,6 +20,7 @@ import {
   Roblox,
 } from '../components/Icons';
 import { bioProfile, bioLinkGroups } from '../data/linksData';
+import { fetchBioProfile } from '../services/firebase';
 import ThemeToggle from '../components/ThemeToggle';
 
 // Mapping icon identifier to React component
@@ -39,10 +40,32 @@ const iconMap = {
 
 export default function BioLinksPage() {
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [profile, setProfile] = useState(() => {
+    try {
+      const cached = localStorage.getItem('hiras_bio_profile');
+      return cached ? { ...bioProfile, ...JSON.parse(cached) } : bioProfile;
+    } catch {
+      return bioProfile;
+    }
+  });
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const cloudProfile = await fetchBioProfile();
+        if (cloudProfile && cloudProfile.name) {
+          setProfile((prev) => ({ ...prev, ...cloudProfile }));
+        }
+      } catch (err) {
+        console.warn('Load bio profile warning:', err);
+      }
+    };
+    loadProfile();
+  }, []);
 
   const handleCopyEmail = () => {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(bioProfile.email);
+      navigator.clipboard.writeText(profile.email || bioProfile.email);
       setCopiedEmail(true);
       setTimeout(() => setCopiedEmail(false), 2500);
     }
@@ -57,30 +80,33 @@ export default function BioLinksPage() {
           <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 shadow-xl">
             <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-950 flex items-center justify-center">
               <img
-                src="/icon-h.png"
-                alt={bioProfile.name}
+                src={profile.avatar || "/icon-h.png"}
+                alt={profile.name}
                 className="w-full h-full object-cover"
               />
             </div>
           </div>
-          <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 shadow-xs" title="Tersedia"></span>
+          <span
+            className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 shadow-xs"
+            title={profile.status || "Tersedia"}
+          ></span>
         </div>
 
         {/* Name and Pill Badge */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
-              {bioProfile.name}
+              {profile.name}
             </h1>
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
             <Sparkles size={12} />
-            <span>Software Engineer • Penikmat Buku</span>
+            <span>{profile.tagline || 'Software Engineer • Penikmat Buku'}</span>
           </div>
 
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto pt-1 leading-relaxed">
-            {bioProfile.bio}
+            {profile.bio}
           </p>
         </div>
 
@@ -88,7 +114,7 @@ export default function BioLinksPage() {
         <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">
             <MapPin size={13} className="text-blue-500" />
-            <span>{bioProfile.location}</span>
+            <span>{profile.location}</span>
           </div>
 
           <button
@@ -102,7 +128,7 @@ export default function BioLinksPage() {
             ) : (
               <Mail size={13} className="text-blue-500" />
             )}
-            <span>{copiedEmail ? 'Email Disalin!' : bioProfile.email}</span>
+            <span>{copiedEmail ? 'Email Disalin!' : (profile.email || bioProfile.email)}</span>
           </button>
 
           <ThemeToggle className="scale-90" />

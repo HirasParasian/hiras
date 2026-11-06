@@ -359,3 +359,58 @@ export const saveSiteStats = async (statsData) => {
   }
   return statsData;
 };
+
+// ==========================================
+// BIO PROFILE (FIRESTORE)
+// ==========================================
+export const fetchBioProfile = async () => {
+  if (!db) {
+    try {
+      const cached = localStorage.getItem('hiras_bio_profile');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  }
+  try {
+    const docRef = doc(db, 'settings', 'profile');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      try {
+        localStorage.setItem('hiras_bio_profile', JSON.stringify(data));
+      } catch (err) {
+        console.warn('Storage cache error:', err);
+      }
+      return data;
+    }
+    return null;
+  } catch (error) {
+    console.warn('Fetch bio profile error:', error);
+    try {
+      const cached = localStorage.getItem('hiras_bio_profile');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  }
+};
+
+export const saveBioProfile = async (profileData) => {
+  if (!db) throw new Error('Firestore belum aktif.');
+  const docRef = doc(db, 'settings', 'profile');
+  await setDoc(
+    docRef,
+    {
+      ...profileData,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+  try {
+    localStorage.setItem('hiras_bio_profile', JSON.stringify(profileData));
+  } catch (err) {
+    console.warn('Storage cache error:', err);
+  }
+  return profileData;
+};

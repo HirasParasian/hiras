@@ -35,11 +35,11 @@ export const getDynamicStats = ({
   return [
     {
       label: 'Buku di Rak',
-      value: booksCount > 0 ? `${booksCount}+` : '0',
+      value: booksCount > 0 ? `${booksCount}` : '0',
     },
     {
       label: 'Artikel Diterbitkan',
-      value: articlesCount > 0 ? `${articlesCount}+` : '0',
+      value: articlesCount > 0 ? `${articlesCount}` : '0',
     },
     {
       label: 'Tahun Pengalaman',
@@ -51,3 +51,4 @@ export const getDynamicStats = ({
     },
   ];
 };
+

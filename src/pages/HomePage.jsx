@@ -9,12 +9,20 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { defaultProfile, defaultBooks, defaultArticles } from '../data/defaultData';
-import { fetchBooks, fetchArticles, fetchSiteStats } from '../services/firebase';
+import { fetchBooks, fetchArticles, fetchSiteStats, fetchBioProfile } from '../services/firebase';
 import { getDynamicStats } from '../utils/stats';
 
 export default function HomePage() {
   const [books, setBooks] = useState(defaultBooks);
   const [articles, setArticles] = useState(defaultArticles);
+  const [profile, setProfile] = useState(() => {
+    try {
+      const cached = localStorage.getItem('hiras_bio_profile');
+      return cached ? { ...defaultProfile, ...JSON.parse(cached) } : defaultProfile;
+    } catch {
+      return defaultProfile;
+    }
+  });
   const [siteStats, setSiteStats] = useState(() => {
     try {
       const cached = localStorage.getItem('hiras_site_stats');
@@ -27,14 +35,16 @@ export default function HomePage() {
   useEffect(() => {
     const loadHighlights = async () => {
       try {
-        const [cloudBooks, cloudArticles, cloudStats] = await Promise.all([
+        const [cloudBooks, cloudArticles, cloudStats, cloudProfile] = await Promise.all([
           fetchBooks(),
           fetchArticles(true),
           fetchSiteStats(),
+          fetchBioProfile(),
         ]);
         if (Array.isArray(cloudBooks) && cloudBooks.length > 0) setBooks(cloudBooks);
         if (Array.isArray(cloudArticles)) setArticles(cloudArticles);
         if (cloudStats && cloudStats.completedProjects) setSiteStats(cloudStats);
+        if (cloudProfile && cloudProfile.name) setProfile((prev) => ({ ...prev, ...cloudProfile }));
       } catch (err) {
         console.warn('Using default highlights:', err);
       }
@@ -58,15 +68,15 @@ export default function HomePage() {
       <section className="space-y-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
           <Sparkles size={13} />
-          <span>{defaultProfile.statusBadge}</span>
+          <span>{profile.statusBadge || profile.status || defaultProfile.statusBadge}</span>
         </div>
 
         <div className="space-y-4">
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
-            Halo, Saya <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">Hiras Parasian</span>.
+            Halo, Saya <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">{profile.name || defaultProfile.name}</span>.
           </h1>
           <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 font-normal max-w-2xl leading-relaxed">
-            Seorang <strong>software engineer</strong> yang menyukai arsitektur sistem web modern, gemar mengumpulkan dan mencatat buku, serta mempublikasikan artikel refleksi teknologi.
+            {profile.bio || defaultProfile.bio}
           </p>
         </div>
 
