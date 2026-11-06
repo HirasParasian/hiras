@@ -32,7 +32,7 @@ export const bioLinkGroups = [
       {
         id: 'artikel',
         title: 'Publikasi & Artikel',
-        subtitle: 'Tulisan dan catatan teknis seputar software development',
+        subtitle: 'A collection of thoughts, ideas, and everything in between.',
         url: '/artikel',
         icon: 'PenTool',
         featured: false,

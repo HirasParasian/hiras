@@ -62,7 +62,8 @@ export default function ArticlesPage() {
           Artikel
         </h1>
         <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-          Catatan teknis, arsitektur sistem, dan pembelajaran yang saya dokumentasikan seputar rekayasa perangkat lunak dan kebiasaan membaca.
+          A collection of thoughts, ideas, and everything in between.
+          An engineer by profession, a curious mind by nature. This is where I keep things I find interesting, questions I cannot stop asking, and thoughts worth revisiting.
         </p>
       </div>
 
@@ -87,8 +88,8 @@ export default function ArticlesPage() {
                 type="button"
                 onClick={() => setSelectedTag(tag)}
                 className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${selectedTag === tag
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
               >
                 {tag}
