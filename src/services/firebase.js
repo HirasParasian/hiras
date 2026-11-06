@@ -79,21 +79,11 @@ export const loginWithEmail = async (email, password) => {
   return await signInWithEmailAndPassword(auth, email, password);
 };
 
-export const loginWithGoogle = async (useRedirect = false) => {
+export const loginWithGoogle = async () => {
   ensureAuth();
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-
-  if (useRedirect) {
-    return await signInWithRedirect(auth, provider);
-  }
-
-  try {
-    return await signInWithPopup(auth, provider);
-  } catch (err) {
-    console.warn('Google popup error, trying redirect:', err);
-    return await signInWithRedirect(auth, provider);
-  }
+  return await signInWithPopup(auth, provider);
 };
 
 export const checkRedirectLogin = async () => {

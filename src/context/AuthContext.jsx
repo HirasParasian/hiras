@@ -4,7 +4,6 @@ import {
   loginWithEmail,
   loginWithGoogle,
   logoutUser,
-  checkRedirectLogin,
   ADMIN_EMAIL,
 } from '../services/firebase';
 
@@ -23,10 +22,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check redirect login if any
-    checkRedirectLogin().catch((err) => console.warn('Redirect login check:', err));
+    // Safety timeout: pastikan loading state tidak pernah stuck lebih dari 2.5 detik
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2500);
 
     const unsubscribe = onAuthUserChanged((user) => {
+      clearTimeout(timer);
       setCurrentUser(user);
       if (user && user.email) {
         const userEmail = user.email.toLowerCase().trim();
@@ -37,15 +39,18 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, []);
 
   const handleLoginEmail = async (email, password) => {
     return await loginWithEmail(email, password);
   };
 
-  const handleLoginGoogle = async (useRedirect = false) => {
-    return await loginWithGoogle(useRedirect);
+  const handleLoginGoogle = async () => {
+    return await loginWithGoogle();
   };
 
   const handleLogout = async () => {
