@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { BookOpen, PenTool, User, Shield, Menu, X, ShieldCheck } from 'lucide-react';
+import { BookOpen, PenTool, User, ShieldCheck, Menu, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 
@@ -63,21 +63,21 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Right Actions: Theme Toggle + Admin Link + Mobile Menu Toggle */}
+        {/* Right Actions: Theme Toggle + Admin Badge (only when logged in) + Mobile Menu Toggle */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
 
-          <Link
-            to="/admin"
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${isAdmin
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-400'
-                : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-            title="Panel Admin"
-          >
-            {isAdmin ? <ShieldCheck size={14} /> : <Shield size={14} />}
-            <span>{isAdmin ? 'Admin' : 'Login'}</span>
-          </Link>
+          {/* Hanya tampil badge Admin kalau sudah login sebagai admin */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-400"
+              title="Panel Admin"
+            >
+              <ShieldCheck size={14} />
+              <span>Admin</span>
+            </Link>
+          )}
 
           {/* Mobile Hamburger Button */}
           <button
@@ -115,14 +115,17 @@ export default function Navbar() {
             );
           })}
 
-          <Link
-            to="/admin"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 border-t border-slate-100 dark:border-slate-800 pt-2 mt-2"
-          >
-            <Shield size={16} />
-            <span>{isAdmin ? 'Kelola Konten (Admin)' : 'Login Admin'}</span>
-          </Link>
+          {/* Tombol admin di mobile hanya jika sudah login */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-t border-slate-100 dark:border-slate-800 pt-2 mt-2"
+            >
+              <ShieldCheck size={16} />
+              <span>Kelola Konten (Admin)</span>
+            </Link>
+          )}
         </div>
       )}
     </header>
