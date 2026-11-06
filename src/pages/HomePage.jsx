@@ -101,7 +101,7 @@ export default function HomePage() {
             to="/me"
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm font-medium transition-colors"
           >
-            <span>Tentang & Kontak (/me)</span>
+            <span>Tentang & Kontak</span>
             <ChevronRight size={15} />
           </Link>
         </div>

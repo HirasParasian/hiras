@@ -86,7 +86,7 @@ export const bioLinkGroups = [
         id: 'youtube',
         title: 'YouTube',
         subtitle: 'Saluran video teknologi & review',
-        url: 'https://youtube.com/@hirasparasian',
+        url: 'https://youtube.com/@hiras.pds',
         icon: 'Youtube',
       },
     ],
@@ -98,16 +98,9 @@ export const bioLinkGroups = [
         id: 'spotify',
         title: 'Spotify',
         subtitle: 'Playlist musik saat coding & membaca',
-        url: 'https://open.spotify.com/user/hirasparasian',
+        url: 'https://open.spotify.com/user/2142ha4sxeotkizqtvb57pjcy?si=fdWjwDZ6Se-HR-SiaQcz3g&utm_source=copy-link',
         icon: 'Music',
-      },
-      {
-        id: 'roblox',
-        title: 'Roblox',
-        subtitle: '@coala_mode',
-        url: 'https://www.roblox.com/users/profile?username=coala_mode',
-        icon: 'Gamepad2',
-      },
+      }
     ],
   },
 ];

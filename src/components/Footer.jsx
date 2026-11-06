@@ -11,7 +11,7 @@ export default function Footer() {
     <footer className="w-full border-t border-slate-200/80 dark:border-slate-800/80 py-8 mt-auto text-xs text-slate-500 dark:text-slate-400 transition-colors">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-          <span>&copy; {new Date().getFullYear()} Hiras Parasian. Dibuat dengan dedikasi.</span>
+          <span>&copy; {new Date().getFullYear()} Hiras Parasian.</span>
           <span className="hidden sm:inline">•</span>
           <div className="flex items-center gap-3">
             <Link to="/" className="hover:text-blue-500 transition-colors">Beranda</Link>
