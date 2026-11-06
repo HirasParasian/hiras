@@ -46,20 +46,27 @@ export default function BooksPage() {
 
   const statuses = ['Semua', 'Sedang Dibaca', 'Selesai Dibaca', 'Wishlist'];
 
-  const filteredBooks = books.filter((book) => {
-    const matchSearch =
-      book.title.toLowerCase().includes(search.toLowerCase()) ||
-      book.author.toLowerCase().includes(search.toLowerCase()) ||
-      (book.genre && book.genre.toLowerCase().includes(search.toLowerCase()));
+  const filteredBooks = books
+    .filter((book) => {
+      const matchSearch =
+        book.title.toLowerCase().includes(search.toLowerCase()) ||
+        book.author.toLowerCase().includes(search.toLowerCase()) ||
+        (book.genre && book.genre.toLowerCase().includes(search.toLowerCase()));
 
-    const matchStatus = statusFilter === 'Semua' || book.status === statusFilter;
-    const matchFormat =
-      formatFilter === 'Semua' ||
-      (formatFilter === 'fisik' && book.format === 'fisik') ||
-      (formatFilter === 'online' && book.format === 'online');
+      const matchStatus = statusFilter === 'Semua' || book.status === statusFilter;
+      const matchFormat =
+        formatFilter === 'Semua' ||
+        (formatFilter === 'fisik' && book.format === 'fisik') ||
+        (formatFilter === 'online' && book.format === 'online');
 
-    return matchSearch && matchStatus && matchFormat;
-  });
+      return matchSearch && matchStatus && matchFormat;
+    })
+    .sort((a, b) => {
+      // Buku fisik tampil lebih dulu dari buku online
+      if (a.format === 'fisik' && b.format !== 'fisik') return -1;
+      if (a.format !== 'fisik' && b.format === 'fisik') return 1;
+      return 0;
+    });
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-8">
