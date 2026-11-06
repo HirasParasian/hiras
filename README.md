@@ -1,4 +1,4 @@
-# 🚀 Hiras Parasian — Personal Website & Portfolio
+# 🚀 Hiras Parasian — Personal Website
 
 Website pribadi modern, interaktif, dan berkinerja tinggi yang dibangun untuk **Hiras Parasian**. Terhubung langsung dengan **Firebase** (Autentikasi & Database NoSQL Firestore), **Cloudinary** (Pipeline optimasi media CDN), dan siap di-deploy secara **100% gratis ke GitHub Pages**.
 
