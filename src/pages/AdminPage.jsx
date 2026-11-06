@@ -1307,8 +1307,9 @@ export default function AdminPage() {
                     </div>
                     <div className="flex-1 w-full space-y-2">
                       <ImageUpload
-                        onUploadComplete={(url) => setProfileForm({ ...profileForm, avatar: url })}
-                        folder="avatars"
+                        value={profileForm.avatar || ''}
+                        onChange={(url) => setProfileForm((prev) => ({ ...prev, avatar: url }))}
+                        label="Upload Foto Avatar"
                       />
                       <div className="flex items-center gap-2">
                         <input
