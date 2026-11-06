@@ -15,9 +15,10 @@ export const isCloudinaryConfigured = () => {
  * Uploads an image file to Cloudinary unsigned upload preset
  * @param {File|Blob} file 
  * @param {Function} [onProgress]
+ * @param {string} [folder] Nama folder tujuan di Cloudinary (e.g. 'BookCover', 'Article', 'Profile')
  * @returns {Promise<{url: string, publicId: string, format: string}>}
  */
-export const uploadToCloudinary = async (file, onProgress) => {
+export const uploadToCloudinary = async (file, onProgress, folder = '') => {
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
     throw new Error('Cloudinary environment variables (CLOUD_NAME atau UPLOAD_PRESET) belum diisi.');
   }
@@ -26,6 +27,9 @@ export const uploadToCloudinary = async (file, onProgress) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', UPLOAD_PRESET);
+  if (folder && folder.trim()) {
+    formData.append('folder', folder.trim());
+  }
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();

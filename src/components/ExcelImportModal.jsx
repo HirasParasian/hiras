@@ -81,7 +81,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportSuccess }) {
                 Bulk Upload Buku via Excel
               </h2>
               <p className="text-xs text-slate-500">
-                Impor banyak buku sekaligus tanpa sampul terlebih dahulu.
+                Impor banyak buku sekaligus beserta URL sampul atau tanpa sampul.
               </p>
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportSuccess }) {
                   Pratinjau Data ({parsedBooks.length} Buku)
                 </span>
                 <span className="text-[11px] text-slate-400">
-                  *Sampul otomatis kosong (dapat diunggah kemudian)
+                  *URL sampul akan otomatis dipasang jika terisi di file Excel
                 </span>
               </div>
 
@@ -199,6 +199,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportSuccess }) {
                   <thead className="bg-slate-100 dark:bg-slate-800 sticky top-0 text-[11px] text-slate-600 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-700">
                     <tr>
                       <th className="p-2.5 pl-3">#</th>
+                      <th className="p-2.5">Sampul</th>
                       <th className="p-2.5">Judul Buku</th>
                       <th className="p-2.5">Penulis</th>
                       <th className="p-2.5">Format</th>
@@ -211,6 +212,20 @@ export default function ExcelImportModal({ isOpen, onClose, onImportSuccess }) {
                     {parsedBooks.map((b, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
                         <td className="p-2.5 pl-3 text-slate-400 font-mono">{idx + 1}</td>
+                        <td className="p-2.5">
+                          {b.cover ? (
+                            <img
+                              src={b.cover}
+                              alt={b.title}
+                              className="w-7 h-9 object-cover rounded shadow-xs border border-slate-200 dark:border-slate-700"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <span className="text-[10px] text-slate-400 italic">-</span>
+                          )}
+                        </td>
                         <td className="p-2.5 font-medium text-slate-900 dark:text-slate-100">
                           {b.title}
                         </td>

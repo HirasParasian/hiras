@@ -1108,6 +1108,7 @@ export default function AdminPage() {
                 <ImageUpload
                   value={bookForm.cover}
                   onChange={(url) => setBookForm({ ...bookForm, cover: url })}
+                  folder="BookCover"
                   label="Gambar Sampul Buku (Cloudinary Upload)"
                 />
 
@@ -1403,6 +1404,7 @@ export default function AdminPage() {
                 <ImageUpload
                   value={articleForm.coverImage}
                   onChange={(url) => setArticleForm({ ...articleForm, coverImage: url })}
+                  folder="Article"
                   label="Gambar Banner / Sampul Artikel (Opsional)"
                 />
 
@@ -1649,6 +1651,7 @@ export default function AdminPage() {
                 <ImageUpload
                   value={projectForm.image}
                   onChange={(url) => setProjectForm({ ...projectForm, image: url })}
+                  folder="Profile"
                   label="Gambar Cover Proyek (Rasio 16:9)"
                 />
 
@@ -1848,6 +1851,7 @@ export default function AdminPage() {
                       <ImageUpload
                         value={profileForm.avatar || ''}
                         onChange={(url) => setProfileForm((prev) => ({ ...prev, avatar: url }))}
+                        folder="Profile"
                         label="Upload Foto Avatar"
                       />
                       <div className="flex items-center gap-2">
@@ -2141,6 +2145,7 @@ export default function AdminPage() {
                 <ImageUpload
                   value={expForm.logo}
                   onChange={(url) => setExpForm({ ...expForm, logo: url })}
+                  folder="Profile"
                   label="Logo / Gambar Perusahaan (Opsional)"
                 />
 
@@ -2321,6 +2326,7 @@ export default function AdminPage() {
                 <ImageUpload
                   value={eduForm.logo}
                   onChange={(url) => setEduForm({ ...eduForm, logo: url })}
+                  folder="Profile"
                   label="Logo / Gambar Institusi (Opsional)"
                 />
 

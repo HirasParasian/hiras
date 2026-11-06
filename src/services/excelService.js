@@ -17,6 +17,7 @@ export const downloadBookTemplate = () => {
       'Status Baca': 'Sedang Dibaca',
       'Rating (1-5)': 5,
       'Tahun': 2024,
+      'URL Cover / Sampul (Opsional)': 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
       'Catatan Pribadi': 'Kajian mendalam tentang replikasi, partisi, konsistensi data terdistribusi.',
     },
     {
@@ -30,6 +31,7 @@ export const downloadBookTemplate = () => {
       'Status Baca': 'Selesai Dibaca',
       'Rating (1-5)': 5,
       'Tahun': 2023,
+      'URL Cover / Sampul (Opsional)': '',
       'Catatan Pribadi': 'Perubahan kecil 1% setiap hari berdampak eksponensial dalam jangka panjang.',
     },
     {
@@ -43,6 +45,7 @@ export const downloadBookTemplate = () => {
       'Status Baca': 'Selesai Dibaca',
       'Rating (1-5)': 5,
       'Tahun': 2023,
+      'URL Cover / Sampul (Opsional)': '',
       'Catatan Pribadi': 'Prinsip kode bersih, fungsi kecil terfokus, dan refactoring berkala.',
     },
   ];
@@ -61,6 +64,7 @@ export const downloadBookTemplate = () => {
     { wch: 16 }, // Status Baca
     { wch: 12 }, // Rating
     { wch: 10 }, // Tahun
+    { wch: 38 }, // URL Cover / Sampul
     { wch: 45 }, // Catatan Pribadi
   ];
 
@@ -134,6 +138,7 @@ export const parseBookExcel = async (file) => {
             const rawRating = getVal(row, 'rating', 'skor', 'nilai', 'bintang');
             const rating = Math.min(5, Math.max(1, Number(rawRating) || 5));
             const year = getVal(row, 'tahun', 'year') || String(new Date().getFullYear());
+            const cover = getVal(row, 'cover', 'sampul', 'gambar', 'image', 'url cover', 'link cover', 'foto');
             const notes = getVal(row, 'catatan', 'notes', 'review', 'intisari', 'ringkasan');
 
             return {
@@ -148,7 +153,7 @@ export const parseBookExcel = async (file) => {
               rating,
               year,
               notes,
-              cover: '', // Sampul dikosongkan terlebih dahulu sesuai permintaan
+              cover: cover || '',
             };
           })
           .filter((book) => Boolean(book.title)); // Wajib punya judul

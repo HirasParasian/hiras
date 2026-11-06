@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Upload, AlertCircle, Loader2 } from 'lucide-react';
 import { uploadToCloudinary } from '../services/cloudinary';
 
-export default function ImageUpload({ value, onChange, label = 'Unggah Gambar Sampul' }) {
+export default function ImageUpload({ value, onChange, label = 'Unggah Gambar Sampul', folder = '' }) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
@@ -27,7 +27,7 @@ export default function ImageUpload({ value, onChange, label = 'Unggah Gambar Sa
     setProgress(0);
 
     try {
-      const result = await uploadToCloudinary(file, (pct) => setProgress(pct));
+      const result = await uploadToCloudinary(file, (pct) => setProgress(pct), folder);
       onChange(result.url);
     } catch (err) {
       console.error('Upload error:', err);
@@ -90,7 +90,7 @@ export default function ImageUpload({ value, onChange, label = 'Unggah Gambar Sa
                   Klik untuk memilih file gambar
                 </span>
                 <span className="text-[11px] text-slate-400">
-                  Cloudinary CDN • JPG, PNG, WEBP (Maks 10MB)
+                  Cloudinary CDN {folder ? `• Folder: ${folder}` : ''} • JPG, PNG, WEBP (Maks 10MB)
                 </span>
               </div>
             )}
