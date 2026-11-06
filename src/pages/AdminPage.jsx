@@ -109,8 +109,8 @@ export default function AdminPage() {
         fetchArticles(false),
       ]);
 
-      setBooks(cloudBooks && cloudBooks.length > 0 ? cloudBooks : defaultBooks);
-      setArticles(cloudArticles && cloudArticles.length > 0 ? cloudArticles : defaultArticles);
+      setBooks(Array.isArray(cloudBooks) && cloudBooks.length > 0 ? cloudBooks : (cloudBooks || []));
+      setArticles(Array.isArray(cloudArticles) ? cloudArticles : []);
     } catch (err) {
       console.warn('Error loading data in admin, using local fallbacks:', err);
       setBooks(defaultBooks);

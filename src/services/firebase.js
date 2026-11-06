@@ -122,17 +122,24 @@ export const onAuthUserChanged = (callback) => {
 // BOOKS (FIRESTORE)
 // ==========================================
 export const fetchBooks = async () => {
-  if (!db) return null;
+  if (!db) return [];
   try {
-    const q = query(collection(db, 'books'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((docSnap) => ({
+    const snapshot = await getDocs(collection(db, 'books'));
+    const list = snapshot.docs.map((docSnap) => ({
       id: docSnap.id,
       ...docSnap.data(),
     }));
+
+    list.sort((a, b) => {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime();
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
+
+    return list;
   } catch (error) {
     console.error('Fetch books error:', error);
-    return null;
+    return [];
   }
 };
 
@@ -168,6 +175,7 @@ export const saveBookItem = async (bookData) => {
 
 export const deleteBookItem = async (id) => {
   if (!db) throw new Error('Firestore belum aktif.');
+  if (String(id).startsWith('local-')) return id;
   await deleteDoc(doc(db, 'books', id));
   return id;
 };
@@ -207,27 +215,28 @@ export const batchSaveBooks = async (booksList) => {
 // ARTIKEL (FIRESTORE)
 // ==========================================
 export const fetchArticles = async (onlyPublished = false) => {
-  if (!db) return null;
+  if (!db) return [];
   try {
-    let q;
-    if (onlyPublished) {
-      q = query(
-        collection(db, 'articles'),
-        where('status', '==', 'terbit'),
-        orderBy('createdAt', 'desc')
-      );
-    } else {
-      q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
-    }
-
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((docSnap) => ({
+    const snapshot = await getDocs(collection(db, 'articles'));
+    let list = snapshot.docs.map((docSnap) => ({
       id: docSnap.id,
       ...docSnap.data(),
     }));
+
+    if (onlyPublished) {
+      list = list.filter((a) => a.status === 'terbit');
+    }
+
+    list.sort((a, b) => {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime();
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
+
+    return list;
   } catch (error) {
     console.error('Fetch articles error:', error);
-    return null;
+    return [];
   }
 };
 
@@ -290,6 +299,7 @@ export const saveArticleItem = async (articleData) => {
 
 export const deleteArticleItem = async (id) => {
   if (!db) throw new Error('Firestore belum aktif.');
+  if (String(id).startsWith('local-')) return id;
   await deleteDoc(doc(db, 'articles', id));
   return id;
 };

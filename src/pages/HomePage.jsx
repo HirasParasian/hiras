@@ -22,8 +22,8 @@ export default function HomePage() {
           fetchBooks(),
           fetchArticles(true),
         ]);
-        if (cloudBooks && cloudBooks.length > 0) setBooks(cloudBooks);
-        if (cloudArticles && cloudArticles.length > 0) setArticles(cloudArticles);
+        if (Array.isArray(cloudBooks) && cloudBooks.length > 0) setBooks(cloudBooks);
+        if (Array.isArray(cloudArticles)) setArticles(cloudArticles);
       } catch (err) {
         console.warn('Using default highlights:', err);
       }

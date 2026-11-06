@@ -5,7 +5,7 @@ import { fetchArticles } from '../services/firebase';
 import { defaultArticles } from '../data/defaultData';
 
 export default function ArticlesPage() {
-  const [articles, setArticles] = useState(defaultArticles);
+  const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState('Semua');
@@ -14,11 +14,11 @@ export default function ArticlesPage() {
     const loadArticles = async () => {
       try {
         const cloudArticles = await fetchArticles(true);
-        if (cloudArticles && cloudArticles.length > 0) {
+        if (Array.isArray(cloudArticles)) {
           setArticles(cloudArticles);
         }
       } catch (err) {
-        console.warn('Using default articles fallback:', err);
+        console.warn('Error loading articles from Firestore:', err);
       } finally {
         setLoading(false);
       }

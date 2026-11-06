@@ -55,8 +55,12 @@ export default function BioLinksPage() {
         {/* Avatar with gradient border */}
         <div className="relative group">
           <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 shadow-xl">
-            <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-2 border-white dark:border-slate-950 flex items-center justify-center text-white font-extrabold text-2xl">
-              HP
+            <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-950 flex items-center justify-center">
+              <img
+                src="/icon-h.png"
+                alt={bioProfile.name}
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
           <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 shadow-xs" title="Tersedia"></span>

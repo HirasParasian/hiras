@@ -23,8 +23,12 @@ export default function Navbar() {
           to="/"
           className="flex items-center gap-2.5 font-bold text-lg tracking-tight hover:opacity-90 transition-opacity"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-black text-sm shadow-sm">
-            HP
+          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-center overflow-hidden p-0.5 shadow-xs">
+            <img
+              src="/icon-h-transparent.png"
+              alt="Hiras Logo"
+              className="w-full h-full object-contain dark:invert"
+            />
           </div>
           <div className="flex flex-col">
             <span className="leading-tight text-slate-900 dark:text-slate-100">
