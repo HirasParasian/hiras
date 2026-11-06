@@ -174,54 +174,6 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Featured Book Shelf Grid Preview */}
-      <section className="space-y-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              Koleksi Buku Bacaan
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              Buku cetak fisik dan buku online yang sedang dan telah saya baca.
-            </p>
-          </div>
-
-          <Link
-            to="/list-book"
-            className="flex items-center gap-1 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            <span>Buka Rak Lengkap</span>
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {recentBooks.map((book) => (
-            <Link
-              key={book.id}
-              to="/list-book"
-              className="group flex flex-col p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:-translate-y-1 shadow-xs"
-            >
-              <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-2.5 relative">
-                <img
-                  src={book.cover}
-                  alt={book.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-                <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/70 text-white backdrop-blur-xs">
-                  {book.status}
-                </span>
-              </div>
-              <h3 className="font-semibold text-xs text-slate-900 dark:text-slate-100 line-clamp-1 group-hover:text-blue-500 transition-colors">
-                {book.title}
-              </h3>
-              <p className="text-[11px] text-slate-500 line-clamp-1">{book.author}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       {/* Recent Published Articles */}
       <section className="space-y-5">
         <div className="flex items-center justify-between">
@@ -273,6 +225,55 @@ export default function HomePage() {
               <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-auto">
                 {art.summary}
               </p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+
+      {/* Featured Book Shelf Grid Preview */}
+      <section className="space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
+              Koleksi Buku Bacaan
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              Buku cetak fisik dan buku online yang sedang dan telah saya baca.
+            </p>
+          </div>
+
+          <Link
+            to="/list-book"
+            className="flex items-center gap-1 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            <span>Buka Rak Lengkap</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {recentBooks.map((book) => (
+            <Link
+              key={book.id}
+              to="/list-book"
+              className="group flex flex-col p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:-translate-y-1 shadow-xs"
+            >
+              <div className="aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-2.5 relative">
+                <img
+                  src={book.cover}
+                  alt={book.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+                <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/70 text-white backdrop-blur-xs">
+                  {book.status}
+                </span>
+              </div>
+              <h3 className="font-semibold text-xs text-slate-900 dark:text-slate-100 line-clamp-1 group-hover:text-blue-500 transition-colors">
+                {book.title}
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-1">{book.author}</p>
             </Link>
           ))}
         </div>
