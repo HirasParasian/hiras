@@ -7,6 +7,8 @@ import {
   Sparkles,
   Bookmark,
   ChevronRight,
+  MapPin,
+  Globe,
 } from 'lucide-react';
 import { defaultProfile, defaultBooks, defaultArticles } from '../data/defaultData';
 import { fetchBooks, fetchArticles, fetchSiteStats, fetchBioProfile } from '../services/firebase';
@@ -52,8 +54,15 @@ export default function HomePage() {
     loadHighlights();
   }, []);
 
-  const currentlyReading = books.filter((b) => b.status === 'Sedang Dibaca').slice(0, 2);
-  const recentBooks = books.slice(0, 4);
+  const sortedBooks = [...books].sort((a, b) => {
+    // Buku fisik tampil lebih dulu dari buku online
+    if (a.format === 'fisik' && b.format !== 'fisik') return -1;
+    if (a.format !== 'fisik' && b.format === 'fisik') return 1;
+    return 0;
+  });
+
+  const currentlyReading = sortedBooks.filter((b) => b.status === 'Sedang Dibaca').slice(0, 2);
+  const recentBooks = sortedBooks.slice(0, 4);
   const publishedArticles = articles.filter((a) => a.status === 'terbit');
 
   const dynamicStats = getDynamicStats({
@@ -268,6 +277,19 @@ export default function HomePage() {
                 />
                 <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/70 text-white backdrop-blur-xs">
                   {book.status}
+                </span>
+                <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider bg-black/75 text-slate-200 backdrop-blur-xs flex items-center gap-1">
+                  {book.format === 'fisik' ? (
+                    <>
+                      <MapPin size={9} className="text-emerald-400" />
+                      <span>Fisik</span>
+                    </>
+                  ) : (
+                    <>
+                      <Globe size={9} className="text-blue-400" />
+                      <span>Online</span>
+                    </>
+                  )}
                 </span>
               </div>
               <h3 className="font-semibold text-xs text-slate-900 dark:text-slate-100 line-clamp-1 group-hover:text-blue-500 transition-colors">
