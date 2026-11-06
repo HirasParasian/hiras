@@ -9,21 +9,32 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { defaultProfile, defaultBooks, defaultArticles } from '../data/defaultData';
-import { fetchBooks, fetchArticles } from '../services/firebase';
+import { fetchBooks, fetchArticles, fetchSiteStats } from '../services/firebase';
+import { getDynamicStats } from '../utils/stats';
 
 export default function HomePage() {
   const [books, setBooks] = useState(defaultBooks);
   const [articles, setArticles] = useState(defaultArticles);
+  const [siteStats, setSiteStats] = useState(() => {
+    try {
+      const cached = localStorage.getItem('hiras_site_stats');
+      return cached ? JSON.parse(cached) : { completedProjects: '20+' };
+    } catch {
+      return { completedProjects: '20+' };
+    }
+  });
 
   useEffect(() => {
     const loadHighlights = async () => {
       try {
-        const [cloudBooks, cloudArticles] = await Promise.all([
+        const [cloudBooks, cloudArticles, cloudStats] = await Promise.all([
           fetchBooks(),
           fetchArticles(true),
+          fetchSiteStats(),
         ]);
         if (Array.isArray(cloudBooks) && cloudBooks.length > 0) setBooks(cloudBooks);
         if (Array.isArray(cloudArticles)) setArticles(cloudArticles);
+        if (cloudStats && cloudStats.completedProjects) setSiteStats(cloudStats);
       } catch (err) {
         console.warn('Using default highlights:', err);
       }
@@ -33,7 +44,13 @@ export default function HomePage() {
 
   const currentlyReading = books.filter((b) => b.status === 'Sedang Dibaca').slice(0, 2);
   const recentBooks = books.slice(0, 4);
-  const publishedArticles = articles.filter((a) => a.status === 'terbit').slice(0, 3);
+  const publishedArticles = articles.filter((a) => a.status === 'terbit');
+
+  const dynamicStats = getDynamicStats({
+    booksCount: books.length,
+    articlesCount: publishedArticles.length,
+    completedProjects: siteStats.completedProjects || '20+',
+  });
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-16">
@@ -81,7 +98,7 @@ export default function HomePage() {
 
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-slate-200 dark:border-slate-800">
-          {defaultProfile.stats.map((stat, idx) => (
+          {dynamicStats.map((stat, idx) => (
             <div
               key={idx}
               className="p-3.5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80"
@@ -152,10 +169,10 @@ export default function HomePage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              Koleksi Sampul Buku
+              Koleksi Buku Bacaan
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              Buku cetak fisik dan buku online yang membentuk pola pikir rekayasa saya.
+              Buku cetak fisik dan buku online yang sedang dan telah saya baca.
             </p>
           </div>
 
@@ -200,10 +217,10 @@ export default function HomePage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-              Artikel & Catatan Rekayasa
+              Artikel
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              Eksplorasi teknis dan tulisan yang saya publikasikan.
+              Tulisan yang saya publikasikan.
             </p>
           </div>
 

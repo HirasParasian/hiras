@@ -1,3 +1,5 @@
+import { calculateExperienceYears } from '../utils/stats';
+
 export const defaultProfile = {
   name: 'Hiras Parasian',
   title: 'Software Engineer',
@@ -11,7 +13,7 @@ export const defaultProfile = {
   stats: [
     { label: 'Buku di Rak', value: '38+' },
     { label: 'Artikel Diterbitkan', value: '12+' },
-    { label: 'Tahun Pengalaman', value: '3+' },
+    { label: 'Tahun Pengalaman', value: calculateExperienceYears(new Date(2022, 4, 1)) },
     { label: 'Proyek Selesai', value: '20+' },
   ],
   interests: [

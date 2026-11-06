@@ -59,7 +59,7 @@ export default function ArticlesPage() {
           <span>Publikasi & Catatan</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
-          Artikel & Tulisan
+          Artikel
         </h1>
         <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
           Catatan teknis, arsitektur sistem, dan pembelajaran yang saya dokumentasikan seputar rekayasa perangkat lunak dan kebiasaan membaca.
@@ -86,11 +86,10 @@ export default function ArticlesPage() {
                 key={tag}
                 type="button"
                 onClick={() => setSelectedTag(tag)}
-                className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                  selectedTag === tag
+                className={`px-3 py-1.5 rounded-xl font-medium whitespace-nowrap transition-colors cursor-pointer ${selectedTag === tag
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
+                  }`}
               >
                 {tag}
               </button>

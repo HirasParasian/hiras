@@ -15,6 +15,7 @@ import {
   doc,
   getDocs,
   getDoc,
+  setDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -302,4 +303,59 @@ export const deleteArticleItem = async (id) => {
   if (String(id).startsWith('local-')) return id;
   await deleteDoc(doc(db, 'articles', id));
   return id;
+};
+
+// ==========================================
+// PENGATURAN STATISTIK SITUS (FIRESTORE)
+// ==========================================
+export const fetchSiteStats = async () => {
+  if (!db) {
+    try {
+      const cached = localStorage.getItem('hiras_site_stats');
+      return cached ? JSON.parse(cached) : { completedProjects: '20+' };
+    } catch {
+      return { completedProjects: '20+' };
+    }
+  }
+  try {
+    const docRef = doc(db, 'settings', 'stats');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      try {
+        localStorage.setItem('hiras_site_stats', JSON.stringify(data));
+      } catch (err) {
+        console.warn('Storage cache error:', err);
+      }
+      return data;
+    }
+    return { completedProjects: '20+' };
+  } catch (error) {
+    console.warn('Fetch site stats error:', error);
+    try {
+      const cached = localStorage.getItem('hiras_site_stats');
+      return cached ? JSON.parse(cached) : { completedProjects: '20+' };
+    } catch {
+      return { completedProjects: '20+' };
+    }
+  }
+};
+
+export const saveSiteStats = async (statsData) => {
+  if (!db) throw new Error('Firestore belum aktif.');
+  const docRef = doc(db, 'settings', 'stats');
+  await setDoc(
+    docRef,
+    {
+      ...statsData,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+  try {
+    localStorage.setItem('hiras_site_stats', JSON.stringify(statsData));
+  } catch (err) {
+    console.warn('Storage cache error:', err);
+  }
+  return statsData;
 };

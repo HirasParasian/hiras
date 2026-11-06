@@ -20,6 +20,7 @@ import {
   Search,
   FileSpreadsheet,
   Download,
+  BarChart3,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -29,8 +30,11 @@ import {
   fetchArticles,
   saveArticleItem,
   deleteArticleItem,
+  fetchSiteStats,
+  saveSiteStats,
   ADMIN_EMAIL,
 } from '../services/firebase';
+import { calculateExperienceYears } from '../utils/stats';
 import ImageUpload from '../components/ImageUpload';
 import TiptapEditor from '../components/TiptapEditor';
 import ExcelImportModal from '../components/ExcelImportModal';
@@ -93,6 +97,10 @@ export default function AdminPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
 
+  // Site stats state
+  const [siteStats, setSiteStats] = useState({ completedProjects: '20+' });
+  const [savingStats, setSavingStats] = useState(false);
+
   const showFeedback = (type, message) => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback({ type: '', message: '' }), 4000);
@@ -104,13 +112,17 @@ export default function AdminPage() {
       setLoadingBooks(true);
       setLoadingArticles(true);
 
-      const [cloudBooks, cloudArticles] = await Promise.all([
+      const [cloudBooks, cloudArticles, cloudStats] = await Promise.all([
         fetchBooks(),
         fetchArticles(false),
+        fetchSiteStats(),
       ]);
 
       setBooks(Array.isArray(cloudBooks) && cloudBooks.length > 0 ? cloudBooks : (cloudBooks || []));
       setArticles(Array.isArray(cloudArticles) ? cloudArticles : []);
+      if (cloudStats && cloudStats.completedProjects) {
+        setSiteStats(cloudStats);
+      }
     } catch (err) {
       console.warn('Error loading data in admin, using local fallbacks:', err);
       setBooks(defaultBooks);
@@ -118,6 +130,22 @@ export default function AdminPage() {
     } finally {
       setLoadingBooks(false);
       setLoadingArticles(false);
+    }
+  };
+
+  const handleSaveSiteStats = async (e) => {
+    if (e) e.preventDefault();
+    setSavingStats(true);
+    try {
+      await saveSiteStats({
+        completedProjects: (siteStats.completedProjects || '').trim() || '20+',
+      });
+      showFeedback('success', 'Statistik "Proyek Selesai" berhasil disimpan ke database!');
+    } catch (err) {
+      console.error('Save stats error:', err);
+      showFeedback('error', 'Gagal menyimpan statistik: ' + (err.message || 'Error'));
+    } finally {
+      setSavingStats(false);
     }
   };
 
@@ -466,6 +494,9 @@ export default function AdminPage() {
       (a.shortId && a.shortId.toLowerCase().includes(articleSearch.toLowerCase()))
   );
 
+  const publishedArticlesCount = articles.filter((a) => a.status === 'terbit').length;
+  const experienceYears = calculateExperienceYears(new Date(2022, 4, 1));
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
       {/* Admin Header Bar */}
@@ -554,8 +585,8 @@ export default function AdminPage() {
               : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
-          <Settings size={16} />
-          <span>Info Sistem</span>
+          <BarChart3 size={16} />
+          <span>Statistik & Sistem</span>
         </button>
       </div>
 
@@ -1202,10 +1233,124 @@ export default function AdminPage() {
       )}
 
       {/* ==========================================
-          TAB 3: INFO SISTEM & DEPLOYMENT
+          TAB 3: STATISTIK & INFO SISTEM
          ========================================== */}
       {activeTab === 'system' && (
-        <div className="space-y-5">
+        <div className="space-y-6">
+          {/* Card: Kelola Statistik Beranda */}
+          <div className="p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-5 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+              <div>
+                <h2 className="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <BarChart3 size={18} className="text-blue-500" />
+                  <span>Statistik Tampilan Beranda Utama</span>
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Statistik ini tampil di bagian ringkasan pada halaman beranda utama (/) untuk para pengunjung.
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 w-fit">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Tersinkronisasi</span>
+              </span>
+            </div>
+
+            {/* Grid 4 Statistik */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              {/* Stat 1: Buku di Rak */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block uppercase tracking-wider">
+                  Buku di Rak
+                </span>
+                <span className="text-2xl font-black font-mono text-slate-900 dark:text-slate-100 block">
+                  {books.length > 0 ? `${books.length}+` : '0'}
+                </span>
+                <span className="text-[11px] text-blue-600 dark:text-blue-400 block font-medium">
+                  ⚡ Otomatis ({books.length} buku di database)
+                </span>
+              </div>
+
+              {/* Stat 2: Artikel Diterbitkan */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block uppercase tracking-wider">
+                  Artikel Diterbitkan
+                </span>
+                <span className="text-2xl font-black font-mono text-slate-900 dark:text-slate-100 block">
+                  {publishedArticlesCount > 0 ? `${publishedArticlesCount}+` : '0'}
+                </span>
+                <span className="text-[11px] text-blue-600 dark:text-blue-400 block font-medium">
+                  ⚡ Otomatis ({publishedArticlesCount} artikel terbit)
+                </span>
+              </div>
+
+              {/* Stat 3: Tahun Pengalaman */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block uppercase tracking-wider">
+                  Tahun Pengalaman
+                </span>
+                <span className="text-2xl font-black font-mono text-slate-900 dark:text-slate-100 block">
+                  {experienceYears}
+                </span>
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-medium">
+                  ⚡ Otomatis (sejak Mei 2022)
+                </span>
+              </div>
+
+              {/* Stat 4: Proyek Selesai */}
+              <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-800/70 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 block uppercase tracking-wider">
+                    Proyek Selesai
+                  </span>
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                    Bisa Diedit
+                  </span>
+                </div>
+                <span className="text-2xl font-black font-mono text-blue-600 dark:text-blue-400 block">
+                  {siteStats.completedProjects || '20+'}
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                  Disimpan di Firestore
+                </span>
+              </div>
+            </div>
+
+            {/* Form Edit Proyek Selesai */}
+            <form onSubmit={handleSaveSiteStats} className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+              <div className="flex-1 space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Edit3 size={13} className="text-blue-500" />
+                  <span>Ubah Nilai "Proyek Selesai":</span>
+                </label>
+                <input
+                  type="text"
+                  value={siteStats.completedProjects || ''}
+                  onChange={(e) => setSiteStats({ ...siteStats, completedProjects: e.target.value })}
+                  placeholder="Contoh: 20+, 25+, 30+"
+                  className="w-full px-3.5 py-2.5 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingStats}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs shrink-0"
+              >
+                {savingStats ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={15} />
+                    <span>Simpan Nilai Proyek</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
           <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4">
             <h2 className="font-bold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Settings size={16} className="text-blue-500" />
@@ -1256,12 +1401,9 @@ export default function AdminPage() {
 {`rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Publik bisa membaca buku dan artikel terbit
-    match /books/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.token.email.lower() == '${ADMIN_EMAIL}';
-    }
-    match /articles/{document=**} {
+    // Publik bisa membaca data
+    // Hanya akun admin ${ADMIN_EMAIL} yang bisa tambah, edit, dan hapus
+    match /{collection}/{document=**} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.token.email.lower() == '${ADMIN_EMAIL}';
     }
