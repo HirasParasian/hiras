@@ -24,6 +24,9 @@ import {
   User,
   Sparkles,
   Mail,
+  Layers,
+  Briefcase,
+  GraduationCap,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -37,6 +40,11 @@ import {
   saveSiteStats,
   fetchBioProfile,
   saveBioProfile,
+  fetchProjects,
+  saveProject,
+  deleteProject,
+  fetchProfileExtended,
+  saveProfileExtended,
   ADMIN_EMAIL,
 } from '../services/firebase';
 import { calculateExperienceYears } from '../utils/stats';
@@ -57,7 +65,7 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState('');
   const [submittingLogin, setSubmittingLogin] = useState(false);
 
-  // Active Admin Tab: 'books' | 'articles' | 'system'
+  // Active Admin Tab: 'books' | 'articles' | 'projects' | 'profile' | 'experience' | 'system'
   const [activeTab, setActiveTab] = useState('books');
 
   // Books data & form state
@@ -111,6 +119,34 @@ export default function AdminPage() {
   const [profileForm, setProfileForm] = useState(bioProfile);
   const [savingProfile, setSavingProfile] = useState(false);
 
+  // Projects state
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+  const [projectForm, setProjectForm] = useState({
+    title: '',
+    description: '',
+    tech: '',
+    image: '',
+    liveUrl: '',
+    githubUrl: '',
+    status: 'selesai',
+    year: String(new Date().getFullYear()),
+    featured: false,
+  });
+
+  // Experience & Education state
+  const [experience, setExperience] = useState([]);
+  const [education, setEducation] = useState([]);
+  const [savingExtended, setSavingExtended] = useState(false);
+  const [editingExpIdx, setEditingExpIdx] = useState(null);
+  const [editingEduIdx, setEditingEduIdx] = useState(null);
+  const [isExpFormOpen, setIsExpFormOpen] = useState(false);
+  const [isEduFormOpen, setIsEduFormOpen] = useState(false);
+  const [expForm, setExpForm] = useState({ role: '', company: '', period: '', description: '', logo: '' });
+  const [eduForm, setEduForm] = useState({ degree: '', institution: '', period: '', description: '', logo: '' });
+
   const showFeedback = (type, message) => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback({ type: '', message: '' }), 4000);
@@ -121,12 +157,15 @@ export default function AdminPage() {
     try {
       setLoadingBooks(true);
       setLoadingArticles(true);
+      setLoadingProjects(true);
 
-      const [cloudBooks, cloudArticles, cloudStats, cloudProfile] = await Promise.all([
+      const [cloudBooks, cloudArticles, cloudStats, cloudProfile, cloudProjects, cloudExtended] = await Promise.all([
         fetchBooks(),
         fetchArticles(false),
         fetchSiteStats(),
         fetchBioProfile(),
+        fetchProjects(),
+        fetchProfileExtended(),
       ]);
 
       setBooks(Array.isArray(cloudBooks) && cloudBooks.length > 0 ? cloudBooks : (cloudBooks || []));
@@ -137,6 +176,11 @@ export default function AdminPage() {
       if (cloudProfile && cloudProfile.name) {
         setProfileForm((prev) => ({ ...prev, ...cloudProfile }));
       }
+      setProjects(Array.isArray(cloudProjects) ? cloudProjects : []);
+      if (cloudExtended) {
+        setExperience(Array.isArray(cloudExtended.experience) ? cloudExtended.experience : []);
+        setEducation(Array.isArray(cloudExtended.education) ? cloudExtended.education : []);
+      }
     } catch (err) {
       console.warn('Error loading data in admin, using local fallbacks:', err);
       setBooks(defaultBooks);
@@ -144,6 +188,194 @@ export default function AdminPage() {
     } finally {
       setLoadingBooks(false);
       setLoadingArticles(false);
+      setLoadingProjects(false);
+    }
+  };
+
+  // ==========================================
+  // PROJECT HANDLERS
+  // ==========================================
+  const defaultProjectForm = {
+    title: '',
+    description: '',
+    tech: '',
+    image: '',
+    liveUrl: '',
+    githubUrl: '',
+    status: 'selesai',
+    year: String(new Date().getFullYear()),
+    featured: false,
+  };
+
+  const handleOpenAddProject = () => {
+    setEditingProjectId(null);
+    setProjectForm(defaultProjectForm);
+    setIsProjectFormOpen(true);
+  };
+
+  const handleEditProject = (project) => {
+    setEditingProjectId(project.id);
+    setProjectForm({
+      title: project.title || '',
+      description: project.description || '',
+      tech: project.tech || '',
+      image: project.image || '',
+      liveUrl: project.liveUrl || '',
+      githubUrl: project.githubUrl || '',
+      status: project.status || 'selesai',
+      year: project.year || String(new Date().getFullYear()),
+      featured: Boolean(project.featured),
+    });
+    setIsProjectFormOpen(true);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
+
+  const handleSaveProject = async (e) => {
+    e.preventDefault();
+    if (!projectForm.title.trim()) {
+      showFeedback('error', 'Judul proyek wajib diisi.');
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const payload = { ...projectForm, id: editingProjectId || undefined };
+      await saveProject(payload);
+      showFeedback('success', editingProjectId ? 'Proyek berhasil diperbarui!' : 'Proyek baru berhasil ditambahkan!');
+      setIsProjectFormOpen(false);
+      setEditingProjectId(null);
+      await loadData();
+    } catch (err) {
+      console.error('Save project error:', err);
+      showFeedback('error', err.message || 'Gagal menyimpan proyek.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteProject = async (project) => {
+    if (!window.confirm(`Yakin ingin menghapus proyek "${project.title}"?`)) return;
+    setActionLoading(true);
+    try {
+      await deleteProject(project.id);
+      showFeedback('success', `Proyek "${project.title}" berhasil dihapus.`);
+      await loadData();
+    } catch (err) {
+      console.error('Delete project error:', err);
+      showFeedback('error', err.message || 'Gagal menghapus proyek.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ==========================================
+  // EXPERIENCE HANDLERS
+  // ==========================================
+  const handleOpenAddExp = () => {
+    setEditingExpIdx(null);
+    setExpForm({ role: '', company: '', period: '', description: '', logo: '' });
+    setIsExpFormOpen(true);
+  };
+
+  const handleEditExp = (item, idx) => {
+    setEditingExpIdx(idx);
+    setExpForm({ role: item.role || '', company: item.company || '', period: item.period || '', description: item.description || '', logo: item.logo || '' });
+    setIsExpFormOpen(true);
+  };
+
+  const handleSaveExp = async (e) => {
+    e.preventDefault();
+    if (!expForm.role.trim() || !expForm.company.trim()) {
+      showFeedback('error', 'Posisi dan Perusahaan wajib diisi.');
+      return;
+    }
+    setSavingExtended(true);
+    try {
+      const updated = [...experience];
+      if (editingExpIdx !== null) {
+        updated[editingExpIdx] = { ...expForm };
+      } else {
+        updated.push({ ...expForm });
+      }
+      await saveProfileExtended({ experience: updated, education });
+      setExperience(updated);
+      setIsExpFormOpen(false);
+      setEditingExpIdx(null);
+      showFeedback('success', 'Data pengalaman kerja berhasil disimpan!');
+    } catch (err) {
+      showFeedback('error', err.message || 'Gagal menyimpan pengalaman.');
+    } finally {
+      setSavingExtended(false);
+    }
+  };
+
+  const handleDeleteExp = async (idx) => {
+    if (!window.confirm('Yakin ingin menghapus data pengalaman ini?')) return;
+    setSavingExtended(true);
+    try {
+      const updated = experience.filter((_, i) => i !== idx);
+      await saveProfileExtended({ experience: updated, education });
+      setExperience(updated);
+      showFeedback('success', 'Data pengalaman berhasil dihapus.');
+    } catch (err) {
+      showFeedback('error', err.message || 'Gagal menghapus.');
+    } finally {
+      setSavingExtended(false);
+    }
+  };
+
+  // ==========================================
+  // EDUCATION HANDLERS
+  // ==========================================
+  const handleOpenAddEdu = () => {
+    setEditingEduIdx(null);
+    setEduForm({ degree: '', institution: '', period: '', description: '', logo: '' });
+    setIsEduFormOpen(true);
+  };
+
+  const handleEditEdu = (item, idx) => {
+    setEditingEduIdx(idx);
+    setEduForm({ degree: item.degree || '', institution: item.institution || '', period: item.period || '', description: item.description || '', logo: item.logo || '' });
+    setIsEduFormOpen(true);
+  };
+
+  const handleSaveEdu = async (e) => {
+    e.preventDefault();
+    if (!eduForm.degree.trim() || !eduForm.institution.trim()) {
+      showFeedback('error', 'Gelar/Program dan Institusi wajib diisi.');
+      return;
+    }
+    setSavingExtended(true);
+    try {
+      const updated = [...education];
+      if (editingEduIdx !== null) {
+        updated[editingEduIdx] = { ...eduForm };
+      } else {
+        updated.push({ ...eduForm });
+      }
+      await saveProfileExtended({ experience, education: updated });
+      setEducation(updated);
+      setIsEduFormOpen(false);
+      setEditingEduIdx(null);
+      showFeedback('success', 'Data pendidikan berhasil disimpan!');
+    } catch (err) {
+      showFeedback('error', err.message || 'Gagal menyimpan pendidikan.');
+    } finally {
+      setSavingExtended(false);
+    }
+  };
+
+  const handleDeleteEdu = async (idx) => {
+    if (!window.confirm('Yakin ingin menghapus data pendidikan ini?')) return;
+    setSavingExtended(true);
+    try {
+      const updated = education.filter((_, i) => i !== idx);
+      await saveProfileExtended({ experience, education: updated });
+      setEducation(updated);
+      showFeedback('success', 'Data pendidikan berhasil dihapus.');
+    } catch (err) {
+      showFeedback('error', err.message || 'Gagal menghapus.');
+    } finally {
+      setSavingExtended(false);
     }
   };
 
@@ -577,11 +809,11 @@ export default function AdminPage() {
       )}
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 mb-6 gap-2 sm:gap-6">
+      <div className="flex border-b border-slate-200 dark:border-slate-800 mb-6 gap-2 sm:gap-5 overflow-x-auto pb-0.5">
         <button
           type="button"
           onClick={() => setActiveTab('books')}
-          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
+          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'books'
               ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
               : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -594,7 +826,7 @@ export default function AdminPage() {
         <button
           type="button"
           onClick={() => setActiveTab('articles')}
-          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
+          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'articles'
               ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
               : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -606,21 +838,47 @@ export default function AdminPage() {
 
         <button
           type="button"
+          onClick={() => setActiveTab('projects')}
+          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
+            activeTab === 'projects'
+              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Layers size={16} />
+          <span>Kelola Proyek ({projects.length})</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('profile')}
-          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
+          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'profile'
               ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
               : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
           <User size={16} />
-          <span>Kelola Profil Bio</span>
+          <span>Profil Bio</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('experience')}
+          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
+            activeTab === 'experience'
+              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Briefcase size={16} />
+          <span>Karir & Pendidikan ({experience.length + education.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('system')}
-          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
+          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'system'
               ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
               : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -1274,6 +1532,287 @@ export default function AdminPage() {
       )}
 
       {/* ==========================================
+          TAB: KELOLA PROYEK
+         ========================================== */}
+      {activeTab === 'projects' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Layers size={18} className="text-blue-500" />
+                <span>Daftar Portofolio Proyek ({projects.length})</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Proyek ini tampil secara publik pada halaman /proyek.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOpenAddProject}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer shrink-0"
+            >
+              <Plus size={15} />
+              <span>Tambah Proyek Baru</span>
+            </button>
+          </div>
+
+          {/* Form Modal / Collapsible */}
+          {isProjectFormOpen && (
+            <div className="p-5 sm:p-6 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/20 dark:bg-blue-950/20 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <Edit3 size={15} className="text-blue-500" />
+                  <span>{editingProjectId ? 'Edit Proyek' : 'Tambah Proyek Baru'}</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setIsProjectFormOpen(false)}
+                  className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                >
+                  Batal
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveProject} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Judul Proyek *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={projectForm.title}
+                      onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
+                      placeholder="Contoh: Personal Website, SaaS App, dsb."
+                      className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Tech Stack (Pisahkan dengan koma)
+                    </label>
+                    <input
+                      type="text"
+                      value={projectForm.tech}
+                      onChange={(e) => setProjectForm({ ...projectForm, tech: e.target.value })}
+                      placeholder="Contoh: React, Tailwind CSS, Firebase"
+                      className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Status Proyek
+                    </label>
+                    <select
+                      value={projectForm.status}
+                      onChange={(e) => setProjectForm({ ...projectForm, status: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden"
+                    >
+                      <option value="selesai">Selesai</option>
+                      <option value="ongoing">Ongoing</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Tahun Proyek
+                    </label>
+                    <input
+                      type="text"
+                      value={projectForm.year}
+                      onChange={(e) => setProjectForm({ ...projectForm, year: e.target.value })}
+                      placeholder="Contoh: 2024"
+                      className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center pt-6">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={projectForm.featured}
+                        onChange={(e) => setProjectForm({ ...projectForm, featured: e.target.checked })}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                      />
+                      <span>Tandai sebagai Featured</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Cover Image Upload */}
+                <ImageUpload
+                  value={projectForm.image}
+                  onChange={(url) => setProjectForm({ ...projectForm, image: url })}
+                  label="Gambar Cover Proyek (Rasio 16:9)"
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Tautan Demo Live (Opsional)
+                    </label>
+                    <input
+                      type="url"
+                      value={projectForm.liveUrl}
+                      onChange={(e) => setProjectForm({ ...projectForm, liveUrl: e.target.value })}
+                      placeholder="https://proyekanda.com"
+                      className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Tautan GitHub (Opsional)
+                    </label>
+                    <input
+                      type="url"
+                      value={projectForm.githubUrl}
+                      onChange={(e) => setProjectForm({ ...projectForm, githubUrl: e.target.value })}
+                      placeholder="https://github.com/hirasparasian/repo"
+                      className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Deskripsi Singkat Proyek
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={projectForm.description}
+                    onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
+                    placeholder="Jelaskan tujuan, fitur utama, dan keunggulan dari proyek ini..."
+                    className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 leading-relaxed"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsProjectFormOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-xs"
+                  >
+                    {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                    <span>{editingProjectId ? 'Simpan Perubahan' : 'Terbitkan Proyek'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Project List */}
+          {loadingProjects ? (
+            <div className="py-12 flex items-center justify-center text-sm text-slate-400 gap-2">
+              <Loader2 size={20} className="animate-spin text-blue-500" />
+              <span>Memuat proyek...</span>
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="p-8 text-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 space-y-2">
+              <Layers size={32} className="mx-auto text-slate-400" />
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Belum ada proyek yang ditambahkan.</p>
+              <button
+                type="button"
+                onClick={handleOpenAddProject}
+                className="text-xs text-blue-600 dark:text-blue-400 underline font-medium cursor-pointer"
+              >
+                Tambah proyek pertama sekarang
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:border-blue-500/50 transition-colors"
+                >
+                  <div className="relative aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    {project.image ? (
+                      <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400">
+                        <Layers size={28} />
+                      </div>
+                    )}
+                    {project.featured && (
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white shadow-xs">
+                        Featured
+                      </span>
+                    )}
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-black/60 text-white backdrop-blur-xs">
+                      {project.status === 'selesai' ? 'Selesai' : 'Ongoing'}
+                    </span>
+                  </div>
+
+                  <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 line-clamp-1">
+                          {project.title}
+                        </h4>
+                        {project.year && (
+                          <span className="text-[11px] font-mono text-slate-400">{project.year}</span>
+                        )}
+                      </div>
+                      {project.tech && (
+                        <p className="text-[11px] font-mono text-blue-600 dark:text-blue-400 line-clamp-1">
+                          {project.tech}
+                        </p>
+                      )}
+                      {project.description && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                          {project.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                        {project.liveUrl && <ExternalLink size={13} title="Ada live link" className="text-emerald-500" />}
+                        {project.githubUrl && <Globe size={13} title="Ada github link" className="text-blue-500" />}
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleEditProject(project)}
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors"
+                          title="Edit Proyek"
+                        >
+                          <Edit3 size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteProject(project)}
+                          className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-slate-400 hover:text-rose-600 transition-colors"
+                          title="Hapus Proyek"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ==========================================
           TAB: KELOLA PROFIL BIO (/me & BERANDA)
          ========================================== */}
       {activeTab === 'profile' && (
@@ -1508,6 +2047,373 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          TAB: PENGALAMAN KERJA & PENDIDIKAN
+         ========================================== */}
+      {activeTab === 'experience' && (
+        <div className="space-y-8">
+          {/* SECTION 1: PENGALAMAN KERJA */}
+          <div className="p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <Briefcase size={18} className="text-blue-500" />
+                  <span>Pengalaman Kerja ({experience.length})</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Tampil pada timeline riwayat karir di halaman profil /me.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleOpenAddExp}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer w-fit"
+              >
+                <Plus size={14} />
+                <span>Tambah Pengalaman</span>
+              </button>
+            </div>
+
+            {/* Form Experience */}
+            {isExpFormOpen && (
+              <form onSubmit={handleSaveExp} className="p-4 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/20 dark:bg-blue-950/20 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                  <h4 className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                    {editingExpIdx !== null ? 'Edit Pengalaman Kerja' : 'Tambah Pengalaman Kerja Baru'}
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => setIsExpFormOpen(false)}
+                    className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  >
+                    Batal
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Posisi / Jabatan *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={expForm.role}
+                      onChange={(e) => setExpForm({ ...expForm, role: e.target.value })}
+                      placeholder="Contoh: Senior Frontend Engineer"
+                      className="w-full px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Nama Perusahaan *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={expForm.company}
+                      onChange={(e) => setExpForm({ ...expForm, company: e.target.value })}
+                      placeholder="Contoh: PT Teknologi Bangsa"
+                      className="w-full px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Periode Kerja
+                  </label>
+                  <input
+                    type="text"
+                    value={expForm.period}
+                    onChange={(e) => setExpForm({ ...expForm, period: e.target.value })}
+                    placeholder="Contoh: Mei 2022 – Sekarang atau Jan 2021 – Apr 2022"
+                    className="w-full px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                </div>
+
+                <ImageUpload
+                  value={expForm.logo}
+                  onChange={(url) => setExpForm({ ...expForm, logo: url })}
+                  label="Logo / Gambar Perusahaan (Opsional)"
+                />
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Deskripsi Peran / Tanggung Jawab
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={expForm.description}
+                    onChange={(e) => setExpForm({ ...expForm, description: e.target.value })}
+                    placeholder="Jelaskan kontribusi utama atau lingkup pekerjaan Anda..."
+                    className="w-full px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 leading-relaxed"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsExpFormOpen(false)}
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingExtended}
+                    className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-xs"
+                  >
+                    {savingExtended ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                    <span>Simpan Pengalaman</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* List Experience */}
+            {experience.length === 0 ? (
+              <p className="text-xs text-slate-400 italic py-2">Belum ada pengalaman kerja yang ditambahkan.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {experience.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start justify-between gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center">
+                        {item.logo ? (
+                          <img src={item.logo} alt={item.company} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 font-mono">
+                            {(item.company || 'C').charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 leading-snug">
+                          {item.role}
+                        </p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                          {item.company} {item.period && <span className="font-normal text-slate-400">({item.period})</span>}
+                        </p>
+                        {item.description && (
+                          <p className="text-xs text-slate-500 dark:text-slate-400 pt-0.5 line-clamp-2">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleEditExp(item, idx)}
+                        className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors"
+                        title="Edit"
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteExp(idx)}
+                        className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-slate-400 hover:text-rose-600 transition-colors"
+                        title="Hapus"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 2: PENDIDIKAN */}
+          <div className="p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <GraduationCap size={18} className="text-indigo-500" />
+                  <span>Riwayat Pendidikan ({education.length})</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Tampil pada bagian latar belakang pendidikan di halaman profil /me.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleOpenAddEdu}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium transition-colors shadow-xs cursor-pointer w-fit"
+              >
+                <Plus size={14} />
+                <span>Tambah Pendidikan</span>
+              </button>
+            </div>
+
+            {/* Form Education */}
+            {isEduFormOpen && (
+              <form onSubmit={handleSaveEdu} className="p-4 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/20 dark:bg-indigo-950/20 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                  <h4 className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                    {editingEduIdx !== null ? 'Edit Data Pendidikan' : 'Tambah Data Pendidikan Baru'}
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => setIsEduFormOpen(false)}
+                    className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  >
+                    Batal
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Gelar / Program Studi *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={eduForm.degree}
+                      onChange={(e) => setEduForm({ ...eduForm, degree: e.target.value })}
+                      placeholder="Contoh: S1 Teknik Informatika"
+                      className="w-full px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Nama Institusi / Universitas *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={eduForm.institution}
+                      onChange={(e) => setEduForm({ ...eduForm, institution: e.target.value })}
+                      placeholder="Contoh: Universitas Indonesia"
+                      className="w-full px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Periode Belajar
+                  </label>
+                  <input
+                    type="text"
+                    value={eduForm.period}
+                    onChange={(e) => setEduForm({ ...eduForm, period: e.target.value })}
+                    placeholder="Contoh: 2018 – 2022"
+                    className="w-full px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  />
+                </div>
+
+                <ImageUpload
+                  value={eduForm.logo}
+                  onChange={(url) => setEduForm({ ...eduForm, logo: url })}
+                  label="Logo / Gambar Institusi (Opsional)"
+                />
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Deskripsi / Catatan Prestasi
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={eduForm.description}
+                    onChange={(e) => setEduForm({ ...eduForm, description: e.target.value })}
+                    placeholder="Fokus studi, IPK, atau kegiatan riset/organisasi..."
+                    className="w-full px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 leading-relaxed"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsEduFormOpen(false)}
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingExtended}
+                    className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-xs"
+                  >
+                    {savingExtended ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                    <span>Simpan Pendidikan</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* List Education */}
+            {education.length === 0 ? (
+              <p className="text-xs text-slate-400 italic py-2">Belum ada riwayat pendidikan yang ditambahkan.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {education.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start justify-between gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center">
+                        {item.logo ? (
+                          <img src={item.logo} alt={item.institution} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 font-mono">
+                            {(item.institution || 'I').charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 leading-snug">
+                          {item.degree}
+                        </p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                          {item.institution} {item.period && <span className="font-normal text-slate-400">({item.period})</span>}
+                        </p>
+                        {item.description && (
+                          <p className="text-xs text-slate-500 dark:text-slate-400 pt-0.5 line-clamp-2">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleEditEdu(item, idx)}
+                        className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors"
+                        title="Edit"
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteEdu(idx)}
+                        className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-slate-400 hover:text-rose-600 transition-colors"
+                        title="Hapus"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

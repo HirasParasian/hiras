@@ -414,3 +414,77 @@ export const saveBioProfile = async (profileData) => {
   }
   return profileData;
 };
+
+// ==========================================
+// PROJECTS (FIRESTORE)
+// ==========================================
+export const fetchProjects = async () => {
+  if (!db) return [];
+  try {
+    const snapshot = await getDocs(collection(db, 'projects'));
+    const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    list.sort((a, b) => {
+      const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime();
+      const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime();
+      return tb - ta;
+    });
+    return list;
+  } catch (err) { console.error('fetchProjects error:', err); return []; }
+};
+
+export const saveProject = async (data) => {
+  if (!db) throw new Error('Firestore belum aktif.');
+  const { id, ...payload } = data;
+  payload.updatedAt = serverTimestamp();
+  if (id && !String(id).startsWith('local-')) {
+    await updateDoc(doc(db, 'projects', id), payload);
+    return { id, ...payload };
+  } else {
+    payload.createdAt = serverTimestamp();
+    const ref = await addDoc(collection(db, 'projects'), payload);
+    return { id: ref.id, ...payload };
+  }
+};
+
+export const deleteProject = async (id) => {
+  if (!db) throw new Error('Firestore belum aktif.');
+  if (String(id).startsWith('local-')) return id;
+  await deleteDoc(doc(db, 'projects', id));
+  return id;
+};
+
+// ==========================================
+// EXPERIENCE & EDUCATION (FIRESTORE)
+// ==========================================
+export const fetchProfileExtended = async () => {
+  if (!db) {
+    try {
+      const cached = localStorage.getItem('hiras_profile_extended');
+      return cached ? JSON.parse(cached) : { experience: [], education: [] };
+    } catch { return { experience: [], education: [] }; }
+  }
+  try {
+    const ref = doc(db, 'settings', 'profile_extended');
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      try { localStorage.setItem('hiras_profile_extended', JSON.stringify(data)); } catch {}
+      return data;
+    }
+    return { experience: [], education: [] };
+  } catch (err) {
+    console.warn('fetchProfileExtended error:', err);
+    try {
+      const cached = localStorage.getItem('hiras_profile_extended');
+      return cached ? JSON.parse(cached) : { experience: [], education: [] };
+    } catch { return { experience: [], education: [] }; }
+  }
+};
+
+export const saveProfileExtended = async (data) => {
+  if (!db) throw new Error('Firestore belum aktif.');
+  const ref = doc(db, 'settings', 'profile_extended');
+  await setDoc(ref, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+  try { localStorage.setItem('hiras_profile_extended', JSON.stringify(data)); } catch {}
+  return data;
+};

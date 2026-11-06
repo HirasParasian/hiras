@@ -13,6 +13,7 @@ const ArticlesPage = lazy(() => import('./pages/ArticlesPage'));
 const ArticleDetailPage = lazy(() => import('./pages/ArticleDetailPage'));
 const BioLinksPage = lazy(() => import('./pages/BioLinksPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function PageLoader() {
@@ -39,6 +40,7 @@ export default function App() {
                   <Route path="/artikel" element={<ArticlesPage />} />
                   <Route path="/artikel/:id" element={<ArticleDetailPage />} />
                   <Route path="/me" element={<BioLinksPage />} />
+                  <Route path="/proyek" element={<ProjectsPage />} />
                   <Route path="/admin" element={<AdminPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

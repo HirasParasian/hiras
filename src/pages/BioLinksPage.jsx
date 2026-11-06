@@ -9,6 +9,8 @@ import {
   Check,
   Sparkles,
   ArrowUpRight,
+  Briefcase,
+  GraduationCap,
 } from 'lucide-react';
 import {
   Github,
@@ -48,6 +50,8 @@ export default function BioLinksPage() {
       return bioProfile;
     }
   });
+  const [experience, setExperience] = useState([]);
+  const [education, setEducation] = useState([]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -60,7 +64,21 @@ export default function BioLinksPage() {
         console.warn('Load bio profile warning:', err);
       }
     };
+
+    const loadExtended = async () => {
+      try {
+        const data = await fetchProfileExtended();
+        if (data) {
+          setExperience(Array.isArray(data.experience) ? data.experience : []);
+          setEducation(Array.isArray(data.education) ? data.education : []);
+        }
+      } catch (err) {
+        console.warn('Load profile extended warning:', err);
+      }
+    };
+
     loadProfile();
+    loadExtended();
   }, []);
 
   const handleCopyEmail = () => {
@@ -216,6 +234,92 @@ export default function BioLinksPage() {
           </div>
         ))}
       </div>
+
+      {/* Work Experience Section */}
+      {experience.length > 0 && (
+        <div className="space-y-4 pt-4">
+          <h2 className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
+            <Briefcase size={16} className="text-blue-500" />
+            Pengalaman Kerja
+          </h2>
+          <div className="space-y-3">
+            {experience.map((item, idx) => (
+              <div
+                key={idx}
+                className="flex items-start gap-3.5 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs"
+              >
+                {/* Logo / Initial */}
+                <div className="shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                  {item.logo ? (
+                    <img src={item.logo} alt={item.company} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                      {(item.company || 'C').charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 space-y-0.5">
+                  <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 leading-snug">
+                    {item.role}
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">{item.company}</p>
+                  {item.period && (
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">{item.period}</p>
+                  )}
+                  {item.description && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pt-1 line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Education Section */}
+      {education.length > 0 && (
+        <div className="space-y-4 pt-2">
+          <h2 className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
+            <GraduationCap size={16} className="text-blue-500" />
+            Pendidikan
+          </h2>
+          <div className="space-y-3">
+            {education.map((item, idx) => (
+              <div
+                key={idx}
+                className="flex items-start gap-3.5 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs"
+              >
+                {/* Logo / Initial */}
+                <div className="shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                  {item.logo ? (
+                    <img src={item.logo} alt={item.institution} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                      {(item.institution || 'I').charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 space-y-0.5">
+                  <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 leading-snug">
+                    {item.degree}
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">{item.institution}</p>
+                  {item.period && (
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">{item.period}</p>
+                  )}
+                  {item.description && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pt-1 line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

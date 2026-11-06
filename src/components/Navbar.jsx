@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { BookOpen, PenTool, User, ShieldCheck, Menu, X } from 'lucide-react';
+import { BookOpen, PenTool, User, ShieldCheck, Menu, X, Code2 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,6 +11,7 @@ export default function Navbar() {
   const navLinks = [
     { label: 'Beranda', to: '/' },
     { label: 'Artikel', to: '/artikel', icon: PenTool },
+    { label: 'Proyek', to: '/proyek', icon: Code2 },
     { label: 'Daftar Buku', to: '/list-book', icon: BookOpen },
     { label: 'Tentang & Kontak', to: '/me', icon: User },
   ];
