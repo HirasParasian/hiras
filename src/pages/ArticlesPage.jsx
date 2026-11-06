@@ -62,8 +62,9 @@ export default function ArticlesPage() {
           Artikel
         </h1>
         <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-          A collection of thoughts, ideas, and everything in between.
-          An engineer by profession, a curious mind by nature. This is where I keep things I find interesting, questions I cannot stop asking, and thoughts worth revisiting.
+          Tentang hal-hal yang menarik perhatian, pertanyaan yang belum terjawab, dan pemikiran yang layak untuk kembali direnungkan.
+
+          Barangkali tidak semua pemikiran membutuhkan jawaban. Beberapa cukup dituliskan, sebagian perlu dipertanyakan, dan beberapa hanya membutuhkan tempat untuk sekadar ada.
         </p>
       </div>
 
