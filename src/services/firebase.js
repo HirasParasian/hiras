@@ -486,7 +486,9 @@ export const fetchConcertEvents = async () => {
   if (!db) {
     try {
       const cached = localStorage.getItem('hiras_concert_events');
-      return cached ? JSON.parse(cached) : [];
+      if (!cached) return [];
+      const parsed = JSON.parse(cached);
+      return Array.isArray(parsed) ? parsed.filter((item) => !String(item.id).startsWith('local-')) : [];
     } catch { return []; }
   }
   try {
@@ -503,7 +505,9 @@ export const fetchConcertEvents = async () => {
     console.error('fetchConcertEvents error:', err);
     try {
       const cached = localStorage.getItem('hiras_concert_events');
-      return cached ? JSON.parse(cached) : [];
+      if (!cached) return [];
+      const parsed = JSON.parse(cached);
+      return Array.isArray(parsed) ? parsed.filter((item) => !String(item.id).startsWith('local-')) : [];
     } catch { return []; }
   }
 };

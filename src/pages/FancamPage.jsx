@@ -14,14 +14,14 @@ import {
   Tv,
   ListMusic,
   Maximize2,
+  Loader2,
 } from 'lucide-react';
 import { fetchConcertEvents } from '../services/firebase';
-import { defaultConcerts } from '../data/defaultData';
 import VideoPlayer from '../components/VideoPlayer';
 import { parseVideoUrl } from '../utils/videoUtils';
 
 export default function FancamPage() {
-  const [concerts, setConcerts] = useState(defaultConcerts);
+  const [concerts, setConcerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('events'); // 'events' | 'videos'
@@ -34,11 +34,10 @@ export default function FancamPage() {
       try {
         setLoading(true);
         const data = await fetchConcertEvents();
-        if (Array.isArray(data) && data.length > 0) {
-          setConcerts(data);
-        }
+        setConcerts(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.warn('Load concerts error, using defaults:', err);
+        console.warn('Load concerts error:', err);
+        setConcerts([]);
       } finally {
         setLoading(false);
       }
@@ -216,7 +215,24 @@ export default function FancamPage() {
       {/* ========================================== */}
       {/* CONTENT VIEW                               */}
       {/* ========================================== */}
-      {viewMode === 'events' ? (
+      {loading ? (
+        <div className="py-20 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-2">
+          <Loader2 size={24} className="animate-spin text-fuchsia-500" />
+          <span>Memuat data arsip konser...</span>
+        </div>
+      ) : concerts.length === 0 ? (
+        <div className="py-20 text-center rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 space-y-3 bg-white/50 dark:bg-slate-900/50">
+          <div className="w-14 h-14 rounded-2xl bg-fuchsia-50 dark:bg-fuchsia-950/60 border border-fuchsia-200 dark:border-fuchsia-900 mx-auto flex items-center justify-center text-fuchsia-600 dark:text-fuchsia-400 shadow-xs">
+            <Film size={26} />
+          </div>
+          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+            Belum ada dokumentasi konser yang diarsipkan
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+            Data rekaman panggung, daftar lagu, dan video fancam akan muncul di halaman ini setelah Anda menambahkannya melalui menu Admin.
+          </p>
+        </div>
+      ) : viewMode === 'events' ? (
         /* ------------------------------------------ */
         /* 1. PER-EVENT CONCERT CARDS                 */
         /* ------------------------------------------ */
