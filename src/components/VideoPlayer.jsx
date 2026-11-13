@@ -45,7 +45,37 @@ export default function VideoPlayer({ url, title, artist, className = '', autoPl
     );
   }
 
-  // 3. Direct Video File (.mp4, .webm, Cloudinary Video)
+  // 3. Vimeo Player
+  if (parsed.type === 'vimeo') {
+    return (
+      <div className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
+        <iframe
+          src={parsed.embedUrl}
+          title={title || 'Vimeo Video'}
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          className="w-full h-full border-0"
+        />
+      </div>
+    );
+  }
+
+  // 4. Streamable Player
+  if (parsed.type === 'streamable') {
+    return (
+      <div className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
+        <iframe
+          src={parsed.embedUrl}
+          title={title || 'Streamable Video'}
+          allow="autoplay; fullscreen"
+          allowFullScreen
+          className="w-full h-full border-0"
+        />
+      </div>
+    );
+  }
+
+  // 5. Direct Video File (.mp4, .webm, Dropbox raw, Cloudinary Video)
   if (parsed.type === 'direct') {
     return (
       <div className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
@@ -101,3 +131,4 @@ export default function VideoPlayer({ url, title, artist, className = '', autoPl
     </div>
   );
 }
+
