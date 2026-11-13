@@ -27,6 +27,8 @@ import {
   Layers,
   Briefcase,
   GraduationCap,
+  Film,
+  Music,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -45,12 +47,16 @@ import {
   deleteProject,
   fetchProfileExtended,
   saveProfileExtended,
+  fetchConcertEvents,
+  saveConcertEvent,
+  deleteConcertEvent,
   ADMIN_EMAIL,
 } from '../services/firebase';
 import { calculateExperienceYears } from '../utils/stats';
 import ImageUpload from '../components/ImageUpload';
 import TiptapEditor from '../components/TiptapEditor';
 import ExcelImportModal from '../components/ExcelImportModal';
+import VideoPlayer from '../components/VideoPlayer';
 import { downloadBookTemplate } from '../services/excelService';
 import { generateShortId } from '../utils/shortId';
 import { defaultBooks, defaultArticles } from '../data/defaultData';
@@ -147,6 +153,24 @@ export default function AdminPage() {
   const [expForm, setExpForm] = useState({ role: '', company: '', period: '', description: '', logo: '' });
   const [eduForm, setEduForm] = useState({ degree: '', institution: '', period: '', description: '', logo: '' });
 
+  // Concerts & Fancam state
+  const [concerts, setConcerts] = useState([]);
+  const [loadingConcerts, setLoadingConcerts] = useState(true);
+  const [editingConcertId, setEditingConcertId] = useState(null);
+  const [isConcertFormOpen, setIsConcertFormOpen] = useState(false);
+  const [savingConcert, setSavingConcert] = useState(false);
+  const defaultConcertForm = {
+    eventName: '',
+    date: '',
+    venue: '',
+    coverImage: '',
+    notes: '',
+    videos: [
+      { id: generateShortId(6), artist: '', songTitle: '', videoUrl: '', notes: '' }
+    ],
+  };
+  const [concertForm, setConcertForm] = useState(defaultConcertForm);
+
   const showFeedback = (type, message) => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback({ type: '', message: '' }), 4000);
@@ -158,14 +182,16 @@ export default function AdminPage() {
       setLoadingBooks(true);
       setLoadingArticles(true);
       setLoadingProjects(true);
+      setLoadingConcerts(true);
 
-      const [cloudBooks, cloudArticles, cloudStats, cloudProfile, cloudProjects, cloudExtended] = await Promise.all([
+      const [cloudBooks, cloudArticles, cloudStats, cloudProfile, cloudProjects, cloudExtended, cloudConcerts] = await Promise.all([
         fetchBooks(),
         fetchArticles(false),
         fetchSiteStats(),
         fetchBioProfile(),
         fetchProjects(),
         fetchProfileExtended(),
+        fetchConcertEvents(),
       ]);
 
       setBooks(Array.isArray(cloudBooks) && cloudBooks.length > 0 ? cloudBooks : (cloudBooks || []));
@@ -181,6 +207,7 @@ export default function AdminPage() {
         setExperience(Array.isArray(cloudExtended.experience) ? cloudExtended.experience : []);
         setEducation(Array.isArray(cloudExtended.education) ? cloudExtended.education : []);
       }
+      setConcerts(Array.isArray(cloudConcerts) ? cloudConcerts : []);
     } catch (err) {
       console.warn('Error loading data in admin, using local fallbacks:', err);
       setBooks(defaultBooks);
@@ -189,6 +216,7 @@ export default function AdminPage() {
       setLoadingBooks(false);
       setLoadingArticles(false);
       setLoadingProjects(false);
+      setLoadingConcerts(false);
     }
   };
 
@@ -376,6 +404,113 @@ export default function AdminPage() {
       showFeedback('error', err.message || 'Gagal menghapus.');
     } finally {
       setSavingExtended(false);
+    }
+  };
+
+  // ==========================================
+  // CONCERT & FANCAM HANDLERS
+  // ==========================================
+  const handleOpenAddConcert = () => {
+    setEditingConcertId(null);
+    setConcertForm({
+      eventName: '',
+      date: '',
+      venue: '',
+      coverImage: '',
+      notes: '',
+      videos: [
+        { id: generateShortId(6), artist: '', songTitle: '', videoUrl: '', notes: '' }
+      ],
+    });
+    setIsConcertFormOpen(true);
+  };
+
+  const handleEditConcert = (concert) => {
+    setEditingConcertId(concert.id);
+    setConcertForm({
+      eventName: concert.eventName || '',
+      date: concert.date || '',
+      venue: concert.venue || '',
+      coverImage: concert.coverImage || '',
+      notes: concert.notes || '',
+      videos: Array.isArray(concert.videos) && concert.videos.length > 0
+        ? concert.videos.map(v => ({ ...v, id: v.id || generateShortId(6) }))
+        : [{ id: generateShortId(6), artist: '', songTitle: '', videoUrl: '', notes: '' }],
+    });
+    setIsConcertFormOpen(true);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
+
+  const handleAddSongVideo = () => {
+    setConcertForm(prev => ({
+      ...prev,
+      videos: [
+        ...prev.videos,
+        { id: generateShortId(6), artist: prev.videos[0]?.artist || '', songTitle: '', videoUrl: '', notes: '' }
+      ]
+    }));
+  };
+
+  const handleRemoveSongVideo = (idx) => {
+    setConcertForm(prev => ({
+      ...prev,
+      videos: prev.videos.filter((_, i) => i !== idx)
+    }));
+  };
+
+  const handleUpdateSongVideo = (idx, field, value) => {
+    setConcertForm(prev => {
+      const updated = [...prev.videos];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return { ...prev, videos: updated };
+    });
+  };
+
+  const handleSaveConcert = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!concertForm.eventName.trim()) {
+      showFeedback('error', 'Nama Event Konser wajib diisi.');
+      return;
+    }
+
+    setSavingConcert(true);
+    try {
+      // Filter out completely empty videos
+      const validVideos = (concertForm.videos || []).filter(
+        v => v.songTitle.trim() || v.videoUrl.trim()
+      );
+
+      const payload = {
+        ...concertForm,
+        videos: validVideos,
+        id: editingConcertId || undefined,
+      };
+
+      await saveConcertEvent(payload);
+      showFeedback('success', editingConcertId ? 'Event konser berhasil diperbarui!' : 'Event konser baru berhasil ditambahkan!');
+      setIsConcertFormOpen(false);
+      setEditingConcertId(null);
+      await loadData();
+    } catch (err) {
+      console.error('Save concert error:', err);
+      showFeedback('error', err.message || 'Gagal menyimpan event konser.');
+    } finally {
+      setSavingConcert(false);
+    }
+  };
+
+  const handleDeleteConcert = async (concert) => {
+    if (!window.confirm(`Yakin ingin menghapus event konser "${concert.eventName}"?`)) return;
+    setSavingConcert(true);
+    try {
+      await deleteConcertEvent(concert.id);
+      showFeedback('success', `Event konser "${concert.eventName}" berhasil dihapus.`);
+      await loadData();
+    } catch (err) {
+      console.error('Delete concert error:', err);
+      showFeedback('error', err.message || 'Gagal menghapus event konser.');
+    } finally {
+      setSavingConcert(false);
     }
   };
 
@@ -873,6 +1008,19 @@ export default function AdminPage() {
         >
           <Briefcase size={16} />
           <span>Karir & Pendidikan ({experience.length + education.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('concerts')}
+          className={`flex items-center gap-2 pb-3 px-2 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
+            activeTab === 'concerts'
+              ? 'border-fuchsia-600 text-fuchsia-600 dark:border-fuchsia-400 dark:text-fuchsia-400 font-semibold'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Film size={16} />
+          <span>Konser & Fancam ({concerts.length})</span>
         </button>
 
         <button
@@ -2418,6 +2566,367 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          TAB: KELOLA KONSER & FANCAM
+         ========================================== */}
+      {activeTab === 'concerts' && (
+        <div className="space-y-6">
+          {/* Header Action */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Film size={20} className="text-fuchsia-600 dark:text-fuchsia-400" />
+                <span>Kelola Event Konser & Fancam</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Tambahkan dokumentasi konser musik, detail venue, tanggal, dan rekaman video fancam tiap lagunya.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOpenAddConcert}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            >
+              <Plus size={16} />
+              <span>Tambah Event Konser</span>
+            </button>
+          </div>
+
+          {/* Form Modal / Drawer */}
+          {isConcertFormOpen && (
+            <div className="p-5 sm:p-6 rounded-2xl border-2 border-fuchsia-500/30 bg-white dark:bg-slate-900 shadow-xl space-y-6 animate-fade-in">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                    {editingConcertId ? 'Edit Event Konser' : 'Tambah Event Konser Baru'}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Isi informasi konser dan masukkan video lagu yang Anda rekam.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsConcertFormOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveConcert} className="space-y-5">
+                {/* 1. Event Basic Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Nama Event Konser *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={concertForm.eventName}
+                      onChange={(e) => setConcertForm({ ...concertForm, eventName: e.target.value })}
+                      placeholder="Contoh: Coldplay Music of the Spheres World Tour atau Sheila on 7 Tunggu Aku Di..."
+                      className="w-full px-3 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-fuchsia-500/30 focus:border-fuchsia-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Tanggal Konser
+                    </label>
+                    <input
+                      type="text"
+                      value={concertForm.date}
+                      onChange={(e) => setConcertForm({ ...concertForm, date: e.target.value })}
+                      placeholder="Contoh: 15 November 2023 atau 2023-11-15"
+                      className="w-full px-3 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-fuchsia-500/30 focus:border-fuchsia-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Lokasi / Venue Konser
+                    </label>
+                    <input
+                      type="text"
+                      value={concertForm.venue}
+                      onChange={(e) => setConcertForm({ ...concertForm, venue: e.target.value })}
+                      placeholder="Contoh: Stadion Utama GBK, Jakarta atau JIExpo Kemayoran"
+                      className="w-full px-3 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-fuchsia-500/30 focus:border-fuchsia-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Cover Image Upload */}
+                <ImageUpload
+                  value={concertForm.coverImage}
+                  onChange={(url) => setConcertForm({ ...concertForm, coverImage: url })}
+                  folder="Profile"
+                  label="Foto Poster / Panggung Konser (Opsional)"
+                />
+
+                {/* Personal Notes / Impression */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Catatan / Kesan Pengalaman Konser
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={concertForm.notes}
+                    onChange={(e) => setConcertForm({ ...concertForm, notes: e.target.value })}
+                    placeholder="Ceritakan pengalaman seru, tempat duduk, atau suasana panggung..."
+                    className="w-full px-3 py-2 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-fuchsia-500/30 focus:border-fuchsia-500"
+                  />
+                </div>
+
+                {/* 2. Dynamic Video Fancams List */}
+                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                        <Music size={16} className="text-fuchsia-600 dark:text-fuchsia-400" />
+                        <span>Daftar Video Lagu & Fancam ({concertForm.videos.length})</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Mendukung tautan video dari YouTube, Google Drive, direct MP4, Cloudinary, dll.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAddSongVideo}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-fuchsia-300 dark:border-fuchsia-800 bg-fuchsia-50 dark:bg-fuchsia-950/50 hover:bg-fuchsia-100 text-fuchsia-700 dark:text-fuchsia-300 text-xs font-medium transition-colors"
+                    >
+                      <Plus size={14} />
+                      <span>Tambah Lagu</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {concertForm.videos.map((vid, idx) => (
+                      <div
+                        key={vid.id || idx}
+                        className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-fuchsia-600 dark:text-fuchsia-400 font-mono">
+                            #Lagu {idx + 1}
+                          </span>
+                          {concertForm.videos.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSongVideo(idx)}
+                              className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1"
+                              title="Hapus lagu ini"
+                            >
+                              <Trash2 size={13} />
+                              <span>Hapus Lagu</span>
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                              Nama Penyanyi / Artis
+                            </label>
+                            <input
+                              type="text"
+                              value={vid.artist}
+                              onChange={(e) => handleUpdateSongVideo(idx, 'artist', e.target.value)}
+                              placeholder="Contoh: Coldplay atau Sheila on 7"
+                              className="w-full px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                              Judul Lagu *
+                            </label>
+                            <input
+                              type="text"
+                              value={vid.songTitle}
+                              onChange={(e) => handleUpdateSongVideo(idx, 'songTitle', e.target.value)}
+                              placeholder="Contoh: Yellow, Dan, atau Fix You"
+                              className="w-full px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2 space-y-1">
+                            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                              Tautan / URL Video Simpanan
+                            </label>
+                            <input
+                              type="url"
+                              value={vid.videoUrl}
+                              onChange={(e) => handleUpdateSongVideo(idx, 'videoUrl', e.target.value)}
+                              placeholder="https://www.youtube.com/watch?v=... atau https://drive.google.com/file/d/... atau file .mp4"
+                              className="w-full px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-mono"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2 space-y-1">
+                            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                              Catatan Lagu (Opsional)
+                            </label>
+                            <input
+                              type="text"
+                              value={vid.notes}
+                              onChange={(e) => handleUpdateSongVideo(idx, 'notes', e.target.value)}
+                              placeholder="Contoh: Momen panggung penuh kembang api atau solo gitar Eross"
+                              className="w-full px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Mini Video Preview Tester */}
+                        {vid.videoUrl && (
+                          <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700/60">
+                            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                              Live Pratinjau Video:
+                            </span>
+                            <div className="max-w-md">
+                              <VideoPlayer
+                                url={vid.videoUrl}
+                                title={vid.songTitle}
+                                artist={vid.artist}
+                                autoPlay={false}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Form Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setIsConcertFormOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingConcert}
+                    className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-700 text-white text-xs font-semibold shadow-xs disabled:opacity-50"
+                  >
+                    {savingConcert && <Loader2 size={14} className="animate-spin" />}
+                    <span>{editingConcertId ? 'Simpan Perubahan' : 'Tambahkan Event Konser'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* List of Concerts */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Koleksi Event Konser ({concerts.length})
+            </h3>
+
+            {loadingConcerts ? (
+              <div className="py-12 text-center text-slate-400 text-xs">
+                <Loader2 size={24} className="animate-spin mx-auto text-fuchsia-500 mb-2" />
+                <span>Memuat data event konser...</span>
+              </div>
+            ) : concerts.length === 0 ? (
+              <div className="p-8 text-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 text-slate-500 text-xs">
+                Belum ada event konser yang ditambahkan. Klik tombol "Tambah Event Konser" di atas.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {concerts.map((concert) => {
+                  const videos = concert.videos || [];
+                  return (
+                    <div
+                      key={concert.id}
+                      className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex flex-col justify-between space-y-3"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
+                          {concert.coverImage ? (
+                            <img
+                              src={concert.coverImage}
+                              alt={concert.eventName}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-fuchsia-950 to-indigo-950 flex items-center justify-center">
+                              <Film size={20} className="text-fuchsia-400" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">
+                            {concert.eventName}
+                          </h4>
+                          <p className="text-xs text-slate-500 truncate">
+                            {concert.venue || 'Venue Belum Diisi'}
+                          </p>
+                          {concert.date && (
+                            <p className="text-[11px] text-fuchsia-600 dark:text-fuchsia-400 font-medium">
+                              {concert.date}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Video Songs Chips */}
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <span className="text-[10px] font-semibold text-slate-400 block mb-1">
+                          {videos.length} Lagu / Fancam:
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {videos.slice(0, 4).map((v, i) => (
+                            <span
+                              key={i}
+                              className="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 truncate max-w-[140px]"
+                            >
+                              {v.songTitle}
+                            </span>
+                          ))}
+                          {videos.length > 4 && (
+                            <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-fuchsia-50 dark:bg-fuchsia-950 text-fuchsia-600 dark:text-fuchsia-400">
+                              +{videos.length - 4} lagi
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => handleEditConcert(concert)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          <Edit3 size={13} />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteConcert(concert)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                        >
+                          <Trash2 size={13} />
+                          <span>Hapus</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

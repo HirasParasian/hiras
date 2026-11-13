@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Home, BookOpen, PenTool, User, ShieldCheck, Code2 } from 'lucide-react';
+import { Home, BookOpen, PenTool, User, ShieldCheck, Code2, Film } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,6 +12,7 @@ export default function Navbar() {
     { label: 'Artikel', shortLabel: 'Artikel', to: '/artikel', icon: PenTool },
     { label: 'Proyek', shortLabel: 'Proyek', to: '/proyek', icon: Code2 },
     { label: 'Daftar Buku', shortLabel: 'Buku', to: '/list-book', icon: BookOpen },
+    { label: 'Fancam', shortLabel: 'Konser', to: '/fancam-concert', icon: Film },
     { label: 'Tentang & Kontak', shortLabel: 'Profil', to: '/me', icon: User },
   ];
 
@@ -21,7 +22,7 @@ export default function Navbar() {
       {/* 1. DESKTOP / TABLET: FLOATING PILL NAVBAR (md:flex)      */}
       {/* ========================================================= */}
       <header className="hidden md:block sticky top-4 z-40 w-full px-4 sm:px-6 pointer-events-none transition-all duration-300">
-        <div className="max-w-4xl mx-auto pointer-events-auto flex items-center justify-between px-3.5 py-2 rounded-full backdrop-blur-xl bg-white/85 dark:bg-slate-900/85 border border-slate-200/80 dark:border-slate-800/80 shadow-lg shadow-slate-900/5 dark:shadow-black/25 transition-colors">
+        <div className="max-w-5xl mx-auto pointer-events-auto flex items-center justify-between px-3.5 py-2 rounded-full backdrop-blur-xl bg-white/85 dark:bg-slate-900/85 border border-slate-200/80 dark:border-slate-800/80 shadow-lg shadow-slate-900/5 dark:shadow-black/25 transition-colors">
           {/* Brand Logo & Name */}
           <Link
             to="/"

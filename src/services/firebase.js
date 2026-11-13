@@ -478,3 +478,54 @@ export const saveProfileExtended = async (data) => {
   try { localStorage.setItem('hiras_profile_extended', JSON.stringify(data)); } catch {}
   return data;
 };
+
+// ==========================================
+// CONCERT EVENTS & FANCAMS (FIRESTORE)
+// ==========================================
+export const fetchConcertEvents = async () => {
+  if (!db) {
+    try {
+      const cached = localStorage.getItem('hiras_concert_events');
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  }
+  try {
+    const snapshot = await getDocs(collection(db, 'concert_events'));
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    list.sort((a, b) => {
+      const timeA = new Date(a.date || 0).getTime() || (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0);
+      const timeB = new Date(b.date || 0).getTime() || (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0);
+      return timeB - timeA;
+    });
+    try { localStorage.setItem('hiras_concert_events', JSON.stringify(list)); } catch {}
+    return list;
+  } catch (err) {
+    console.error('fetchConcertEvents error:', err);
+    try {
+      const cached = localStorage.getItem('hiras_concert_events');
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  }
+};
+
+export const saveConcertEvent = async (data) => {
+  if (!db) throw new Error('Firestore belum aktif.');
+  const { id, ...payload } = data;
+  payload.updatedAt = serverTimestamp();
+
+  if (id && !String(id).startsWith('local-')) {
+    await updateDoc(doc(db, 'concert_events', id), payload);
+    return { id, ...payload };
+  } else {
+    payload.createdAt = serverTimestamp();
+    const ref = await addDoc(collection(db, 'concert_events'), payload);
+    return { id: ref.id, ...payload };
+  }
+};
+
+export const deleteConcertEvent = async (id) => {
+  if (!db) throw new Error('Firestore belum aktif.');
+  if (String(id).startsWith('local-')) return id;
+  await deleteDoc(doc(db, 'concert_events', id));
+  return id;
+};

@@ -158,3 +158,61 @@ export const defaultArticles = [
     publishedAt: null,
   },
 ];
+
+export const defaultConcerts = [
+  {
+    id: 'local-concert-1',
+    eventName: 'Coldplay: Music of the Spheres World Tour',
+    date: '2023-11-15',
+    venue: 'Stadion Utama Gelora Bung Karno (GBK), Jakarta',
+    coverImage: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
+    notes: 'Konser bersejarah Coldplay pertama kali di Indonesia. Puluhan ribu gelang Xyloband menyala serentak dengan visual panggung yang sangat megah.',
+    videos: [
+      {
+        id: 'vid-coldplay-1',
+        artist: 'Coldplay',
+        songTitle: 'Yellow',
+        videoUrl: 'https://www.youtube.com/watch?v=yKNxeF4KMsY',
+        notes: 'Lautan gelang kuning keemasan menerangi seluruh stadion GBK.',
+      },
+      {
+        id: 'vid-coldplay-2',
+        artist: 'Coldplay',
+        songTitle: 'Fix You',
+        videoUrl: 'https://www.youtube.com/watch?v=k4V3Mo61fJM',
+        notes: 'Momen sing-along paling emosional berpadu dengan kembang api spektakuler.',
+      },
+      {
+        id: 'vid-coldplay-3',
+        artist: 'Coldplay',
+        songTitle: 'A Sky Full of Stars',
+        videoUrl: 'https://www.youtube.com/watch?v=VPRjCeoBqrI',
+        notes: 'Chris Martin meminta semua orang menurunkan ponsel untuk melompat bersama.',
+      },
+    ],
+  },
+  {
+    id: 'local-concert-2',
+    eventName: 'Sheila on 7: Tunggu Aku Di Jakarta',
+    date: '2023-01-28',
+    venue: 'JIExpo Kemayoran, Jakarta',
+    coverImage: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80',
+    notes: 'Konser tunggal reuni penuh nostalgia masa sekolah bersama Duta, Eross, dan Adam.',
+    videos: [
+      {
+        id: 'vid-so7-1',
+        artist: 'Sheila on 7',
+        songTitle: 'Dan',
+        videoUrl: 'https://www.youtube.com/watch?v=0kFpTuhxUZE',
+        notes: 'Semua penonton serentak menyanyikan bait pertama tanpa jeda.',
+      },
+      {
+        id: 'vid-so7-2',
+        artist: 'Sheila on 7',
+        songTitle: 'Sebuah Kisah Klasik',
+        videoUrl: 'https://www.youtube.com/watch?v=zV-S2hX6yP8',
+        notes: 'Lagu penutup yang hangat dan haru mengiringi kepulangan penonton.',
+      },
+    ],
+  },
+];
