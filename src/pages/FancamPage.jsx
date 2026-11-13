@@ -197,7 +197,7 @@ export default function FancamPage() {
       <section className="space-y-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/60 dark:text-fuchsia-300 border border-fuchsia-200 dark:border-fuchsia-900 shadow-xs">
           <Film size={14} className="text-fuchsia-600 dark:text-fuchsia-400" />
-          <span>Arsip Dokumentasi & Fancam Konser</span>
+          <span>Arsip Fancam Konser</span>
         </div>
 
         <div className="space-y-3">
@@ -205,7 +205,7 @@ export default function FancamPage() {
             Fancam & Dokumentasi Konser
           </h1>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-normal max-w-2xl leading-relaxed">
-            Koleksi rekaman langsung (*fancam*) dari barisan penonton, momen panggung spektakuler, serta arsip lagu yang dikelompokkan berdasarkan event konser maupun penyanyi favorit Anda.
+            Koleksi rekaman langsung (*fancam*) dari barisan penonton
           </p>
         </div>
 
@@ -221,13 +221,13 @@ export default function FancamPage() {
             <span className="block text-2xl font-bold font-mono text-blue-600 dark:text-blue-400">
               {allVideos.length}
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Lagu / Fancam</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Fancam</span>
           </div>
           <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
             <span className="block text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
               {uniqueArtists.length}
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Penyanyi / Artis</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Penyanyi / Group Band</span>
           </div>
         </div>
       </section>
@@ -254,11 +254,10 @@ export default function FancamPage() {
             <button
               type="button"
               onClick={() => setViewMode('events')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                viewMode === 'events'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${viewMode === 'events'
                   ? 'bg-white dark:bg-slate-900 text-fuchsia-600 dark:text-fuchsia-400 shadow-xs font-semibold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+                }`}
             >
               <ListMusic size={14} />
               <span>Per Event</span>
@@ -267,11 +266,10 @@ export default function FancamPage() {
             <button
               type="button"
               onClick={() => setViewMode('artists')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                viewMode === 'artists'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${viewMode === 'artists'
                   ? 'bg-white dark:bg-slate-900 text-fuchsia-600 dark:text-fuchsia-400 shadow-xs font-semibold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+                }`}
             >
               <Mic size={14} />
               <span>Per Penyanyi</span>
@@ -280,11 +278,10 @@ export default function FancamPage() {
             <button
               type="button"
               onClick={() => setViewMode('videos')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                viewMode === 'videos'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${viewMode === 'videos'
                   ? 'bg-white dark:bg-slate-900 text-fuchsia-600 dark:text-fuchsia-400 shadow-xs font-semibold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+                }`}
             >
               <Tv size={14} />
               <span>Semua Video ({allVideos.length})</span>
@@ -303,11 +300,10 @@ export default function FancamPage() {
             <button
               type="button"
               onClick={() => setSelectedArtist('Semua')}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-                selectedArtist === 'Semua'
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${selectedArtist === 'Semua'
                   ? 'bg-fuchsia-600 text-white shadow-xs font-semibold'
                   : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300'
-              }`}
+                }`}
             >
               Semua Artis ({allVideos.length})
             </button>
@@ -317,18 +313,16 @@ export default function FancamPage() {
                 key={artistName}
                 type="button"
                 onClick={() => setSelectedArtist(artistName)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  selectedArtist === artistName
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${selectedArtist === artistName
                     ? 'bg-fuchsia-600 text-white shadow-xs font-semibold'
                     : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300'
-                }`}
+                  }`}
               >
                 <span>{artistName}</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  selectedArtist === artistName
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedArtist === artistName
                     ? 'bg-fuchsia-700 text-fuchsia-100'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                }`}>
+                  }`}>
                   {artistCounts[artistName]}
                 </span>
               </button>

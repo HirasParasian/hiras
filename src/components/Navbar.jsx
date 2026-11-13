@@ -12,7 +12,7 @@ export default function Navbar() {
     { label: 'Artikel', shortLabel: 'Artikel', to: '/artikel', icon: PenTool },
     { label: 'Proyek', shortLabel: 'Proyek', to: '/proyek', icon: Code2 },
     { label: 'Daftar Buku', shortLabel: 'Buku', to: '/list-book', icon: BookOpen },
-    { label: 'Fancam', shortLabel: 'Konser', to: '/fancam-concert', icon: Film },
+    //{ label: 'Fancam', shortLabel: 'Konser', to: '/fancam-concert', icon: Film },
     { label: 'Tentang & Kontak', shortLabel: 'Profil', to: '/me', icon: User },
   ];
 
@@ -55,10 +55,9 @@ export default function Navbar() {
                   to={item.to}
                   end={item.to === '/'}
                   className={({ isActive }) =>
-                    `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                      isActive
-                        ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-semibold'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                    `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${isActive
+                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-semibold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                     }`
                   }
                 >
@@ -135,21 +134,19 @@ export default function Navbar() {
               to={item.to}
               end={item.to === '/'}
               className={({ isActive }) =>
-                `relative flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? 'text-blue-600 dark:text-blue-400 font-semibold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                `relative flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all duration-200 ${isActive
+                  ? 'text-blue-600 dark:text-blue-400 font-semibold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
                   <div
-                    className={`p-1.5 rounded-xl transition-all duration-200 ${
-                      isActive
+                    className={`p-1.5 rounded-xl transition-all duration-200 ${isActive
                         ? 'bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 scale-105 shadow-xs'
                         : 'text-slate-500 dark:text-slate-400'
-                    }`}
+                      }`}
                   >
                     <Icon size={18} />
                   </div>
