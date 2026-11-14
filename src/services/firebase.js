@@ -517,6 +517,13 @@ export const saveConcertEvent = async (data) => {
   const { id, ...payload } = data;
   payload.updatedAt = serverTimestamp();
 
+  if (!payload.slug && payload.eventName) {
+    payload.slug = payload.eventName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+  }
+
   if (id && !String(id).startsWith('local-')) {
     await updateDoc(doc(db, 'concert_events', id), payload);
     return { id, ...payload };
@@ -524,6 +531,58 @@ export const saveConcertEvent = async (data) => {
     payload.createdAt = serverTimestamp();
     const ref = await addDoc(collection(db, 'concert_events'), payload);
     return { id: ref.id, ...payload };
+  }
+};
+
+export const fetchConcertEventById = async (idOrSlug) => {
+  if (!idOrSlug) return null;
+
+  // 1. Check local cache first for superfast render
+  try {
+    const cached = localStorage.getItem('hiras_concert_events');
+    if (cached) {
+      const list = JSON.parse(cached);
+      const found = list.find(
+        (c) => String(c.id) === String(idOrSlug) || String(c.slug) === String(idOrSlug)
+      );
+      if (found) return found;
+    }
+  } catch {}
+
+  if (!db) return null;
+
+  try {
+    // 2. Try directly by doc ID
+    const docRef = doc(db, 'concert_events', idOrSlug);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      return { id: snap.id, ...snap.data() };
+    }
+
+    // 3. If not found by doc ID, search by slug
+    const q = query(
+      collection(db, 'concert_events'),
+      where('slug', '==', String(idOrSlug).toLowerCase().trim())
+    );
+    const qSnap = await getDocs(q);
+    if (!qSnap.empty) {
+      const d = qSnap.docs[0];
+      return { id: d.id, ...d.data() };
+    }
+
+    return null;
+  } catch (err) {
+    console.error('fetchConcertEventById error:', err);
+    try {
+      const all = await fetchConcertEvents();
+      return (
+        all.find(
+          (c) => String(c.id) === String(idOrSlug) || String(c.slug) === String(idOrSlug)
+        ) || null
+      );
+    } catch {
+      return null;
+    }
   }
 };
 

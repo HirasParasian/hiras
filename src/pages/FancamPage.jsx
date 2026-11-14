@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Film,
   Music,
@@ -9,6 +10,7 @@ import {
   Search,
   Sparkles,
   ChevronRight,
+  ArrowRight,
   ExternalLink,
   ChevronLeft,
   Tv,
@@ -368,7 +370,7 @@ export default function FancamPage() {
         /* ------------------------------------------ */
         /* 1. PER-EVENT CONCERT CARDS                 */
         /* ------------------------------------------ */
-        <div className="space-y-10">
+        <div>
           {filteredEvents.length === 0 ? (
             <div className="py-16 text-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 p-8">
               <Film size={36} className="mx-auto text-slate-400 mb-2" />
@@ -387,161 +389,148 @@ export default function FancamPage() {
               </button>
             </div>
           ) : (
-            filteredEvents.map((event) => {
-              const videos = event.filteredVideos || event.videos || [];
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredEvents.map((event) => {
+                const videos = event.filteredVideos || event.videos || [];
+                const concertArtists = Array.from(
+                  new Set(videos.map((v) => (v.artist || '').trim()).filter(Boolean))
+                );
+                const concertUrl = `/fancam-concert/${event.slug || event.id}`;
 
-              // Group videos inside event by artist
-              const eventVideosByArtist = videos.reduce((acc, v) => {
-                const artistName = (v.artist || 'Penyanyi Konser').trim();
-                if (!acc[artistName]) acc[artistName] = [];
-                acc[artistName].push(v);
-                return acc;
-              }, {});
+                return (
+                  <Link
+                    key={event.id}
+                    to={concertUrl}
+                    className="group flex flex-col rounded-3xl border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl hover:border-fuchsia-500/50 dark:hover:border-fuchsia-500/50 transition-all duration-300"
+                  >
+                    {/* Event Banner */}
+                    <div className="relative w-full aspect-16/9 bg-slate-900 overflow-hidden">
+                      {event.coverImage ? (
+                        <img
+                          src={event.coverImage}
+                          alt={event.eventName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-fuchsia-950 via-slate-900 to-indigo-950 flex items-center justify-center">
+                          <Film size={40} className="text-white/20" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
 
-              const eventArtistList = Object.keys(eventVideosByArtist);
+                      {/* Video Count Badge */}
+                      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-fuchsia-600 text-white shadow-md">
+                          <Sparkles size={11} />
+                          <span>{videos.length} Fancam</span>
+                        </span>
+                      </div>
 
-              return (
-                <div
-                  key={event.id}
-                  className="rounded-3xl border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                >
-                  {/* Event Banner / Header */}
-                  <div className="relative w-full aspect-21/9 sm:aspect-24/7 min-h-[140px] bg-slate-900 overflow-hidden">
-                    {event.coverImage ? (
-                      <img
-                        src={event.coverImage}
-                        alt={event.eventName}
-                        className="w-full h-full object-cover opacity-75"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-
-                    {/* Header Info Overlay */}
-                    <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3 text-white">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-fuchsia-600/90 backdrop-blur-xs text-white">
-                            <Sparkles size={11} />
-                            <span>{videos.length} Video Fancam</span>
-                          </span>
+                      {/* Header Overlay */}
+                      <div className="absolute bottom-3 left-4 right-4 text-white space-y-1">
+                        <div className="flex items-center gap-2 text-xs text-slate-300 flex-wrap">
                           {event.date && (
-                            <span className="inline-flex items-center gap-1 text-xs text-slate-300">
-                              <Calendar size={12} />
+                            <span className="inline-flex items-center gap-1 bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full">
+                              <Calendar size={11} />
                               <span>{event.date}</span>
                             </span>
                           )}
+                          {event.venue && (
+                            <span className="inline-flex items-center gap-1 bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full truncate max-w-[200px]">
+                              <MapPin size={11} className="text-fuchsia-400" />
+                              <span>{event.venue}</span>
+                            </span>
+                          )}
                         </div>
-                        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white group-hover:text-fuchsia-300 transition-colors line-clamp-1">
                           {event.eventName}
                         </h2>
-                        {event.venue && (
-                          <p className="text-xs sm:text-sm text-slate-300 flex items-center gap-1.5">
-                            <MapPin size={13} className="text-fuchsia-400 shrink-0" />
-                            <span>{event.venue}</span>
-                          </p>
-                        )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Event Notes & Personal Experience */}
-                  {event.notes && (
-                    <div className="p-4 sm:p-5 bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 text-xs sm:text-sm text-slate-600 dark:text-slate-300 italic">
-                      "{event.notes}"
-                    </div>
-                  )}
-
-                  {/* Songs Grouped by Artist */}
-                  <div className="p-4 sm:p-6 space-y-6">
-                    {videos.length === 0 ? (
-                      <p className="text-xs text-slate-400 italic">
-                        Tidak ada video yang cocok dengan filter.
-                      </p>
-                    ) : (
-                      eventArtistList.map((artistName) => {
-                        const artistSongs = eventVideosByArtist[artistName];
-                        return (
-                          <div key={artistName} className="space-y-2.5">
-                            {/* Artist Header inside concert */}
-                            <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 pb-1 border-b border-slate-100 dark:border-slate-800/60">
-                              <div className="w-5 h-5 rounded-full bg-fuchsia-100 dark:bg-fuchsia-950/80 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center">
-                                <Mic size={11} />
-                              </div>
-                              <span className="tracking-tight">{artistName}</span>
-                              <span className="text-[10px] font-normal text-slate-400">
-                                • {artistSongs.length} lagu
+                    {/* Card Content */}
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-3">
+                        {/* Lineup Chips */}
+                        {concertArtists.length > 0 && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {concertArtists.slice(0, 3).map((artist) => (
+                              <span
+                                key={artist}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                              >
+                                <Mic size={10} className="text-fuchsia-500" />
+                                <span>{artist}</span>
                               </span>
-                            </div>
+                            ))}
+                            {concertArtists.length > 3 && (
+                              <span className="text-[10px] text-slate-400">
+                                +{concertArtists.length - 3} lainnya
+                              </span>
+                            )}
+                          </div>
+                        )}
 
-                            {/* Songs Cards */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {artistSongs.map((vid, idx) => {
-                                const parsed = parseVideoUrl(vid.videoUrl);
-                                return (
-                                  <div
-                                    key={vid.id || idx}
-                                    onClick={() =>
-                                      setActiveModal({
-                                        event,
-                                        video: vid,
-                                        videoIndex: idx,
-                                        playlist: artistSongs,
-                                      })
-                                    }
-                                    className="group flex items-center gap-3 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/80 hover:border-fuchsia-500 dark:hover:border-fuchsia-500 hover:bg-fuchsia-50/20 dark:hover:bg-fuchsia-950/20 transition-all cursor-pointer shadow-2xs"
-                                  >
-                                    {/* Thumbnail / Play Badge */}
-                                    <div className="relative w-20 h-14 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
-                                      {parsed.thumbnailUrl ? (
-                                        <img
-                                          src={parsed.thumbnailUrl}
-                                          alt={vid.songTitle}
-                                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                        />
-                                      ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-fuchsia-900 to-indigo-950 flex items-center justify-center">
-                                          <Music size={18} className="text-white/60" />
-                                        </div>
-                                      )}
-                                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-                                        <div className="w-7 h-7 rounded-full bg-fuchsia-600 text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                                          <Play size={12} className="ml-0.5 fill-current" />
-                                        </div>
-                                      </div>
-                                    </div>
+                        {/* Notes Teaser */}
+                        {event.notes ? (
+                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 italic">
+                            "{event.notes}"
+                          </p>
+                        ) : (
+                          <p className="text-xs text-slate-400 dark:text-slate-500">
+                            Klik untuk membuka dan menonton daftar video rekaman dari konser ini.
+                          </p>
+                        )}
 
-                                    {/* Song & Artist Info */}
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400 transition-colors">
-                                        {vid.songTitle}
-                                      </h4>
-                                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                        {vid.artist || artistName}
-                                      </p>
-                                      {vid.notes && (
-                                        <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
-                                          {vid.notes}
-                                        </p>
-                                      )}
-                                    </div>
-
-                                    <div className="text-slate-400 group-hover:text-fuchsia-500 transition-colors pr-1">
-                                      <ChevronRight size={18} />
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                        {/* Tracklist Preview */}
+                        {videos.length > 0 && (
+                          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60 space-y-1">
+                            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                              Daftar Lagu:
+                            </span>
+                            <div className="space-y-1">
+                              {videos.slice(0, 3).map((v, i) => (
+                                <div
+                                  key={i}
+                                  className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2 truncate"
+                                >
+                                  <span className="w-4 text-[10px] font-mono text-slate-400">
+                                    {i + 1}.
+                                  </span>
+                                  <span className="font-medium truncate">{v.songTitle}</span>
+                                  {v.artist && (
+                                    <span className="text-[11px] text-slate-400 shrink-0">
+                                      • {v.artist}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                              {videos.length > 3 && (
+                                <span className="text-[11px] text-fuchsia-600 dark:text-fuchsia-400 font-medium block pt-0.5">
+                                  +{videos.length - 3} lagu lainnya
+                                </span>
+                              )}
                             </div>
                           </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              );
-            })
+                        )}
+                      </div>
+
+                      {/* Card Footer Action */}
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-fuchsia-600 dark:text-fuchsia-400 group-hover:text-fuchsia-700 dark:group-hover:text-fuchsia-300">
+                        <span className="flex items-center gap-1.5">
+                          <Play size={13} className="fill-current" />
+                          <span>Buka Koleksi Fancam</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                          <span>Putar Sekarang</span>
+                          <ArrowRight size={14} />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           )}
         </div>
       ) : viewMode === 'artists' ? (
@@ -751,6 +740,16 @@ export default function FancamPage() {
               </div>
 
               <div className="flex items-center gap-1.5 shrink-0">
+                {activeModal.event && (
+                  <Link
+                    to={`/fancam-concert/${activeModal.event.slug || activeModal.event.id}`}
+                    onClick={() => setActiveModal(null)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-fuchsia-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  >
+                    <span>Buka Halaman Konser</span>
+                    <ArrowRight size={13} />
+                  </Link>
+                )}
                 {activeModal.video.videoUrl && (
                   <a
                     href={activeModal.video.videoUrl}
