@@ -27,14 +27,8 @@ import { usePageSEO } from '../hooks/usePageSEO';
 export default function FancamPage() {
   usePageSEO({
     title: 'Fancam & Dokumentasi Konser Musik',
-    description: 'Arsip rekaman langsung (fancam), daftar lagu, dan momen panggung konser musik.',
-    url: 'https://www.hiras.my.id/fancam-concert',
-  });
-
-  usePageSEO({
-    title: 'Fancam & Dokumentasi Konser Musik',
     description: 'Arsip rekaman langsung (fancam), daftar lagu, dan momen panggung konser musik yang dihadiri oleh Hiras Parasian.',
-    url: 'https://www.hiras.my.id/fancam-concert',
+    url: 'https://www.hiras.my.id/fancam-list',
   });
 
   const [concerts, setConcerts] = useState([]);

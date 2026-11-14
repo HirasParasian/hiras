@@ -45,7 +45,7 @@ export default function App() {
                   <Route path="/artikel/:id" element={<ArticleDetailPage />} />
                   <Route path="/me" element={<BioLinksPage />} />
                   <Route path="/proyek" element={<ProjectsPage />} />
-                  <Route path="/fancam-concert" element={<FancamPage />} />
+                  <Route path="/fancam-list" element={<FancamPage />} />
                   <Route path="/fancam-concert/:id" element={<ConcertDetailPage />} />
                   <Route path="/admin" element={<AdminPage />} />
                   <Route path="*" element={<NotFoundPage />} />
