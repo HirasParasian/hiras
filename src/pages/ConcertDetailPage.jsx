@@ -150,7 +150,7 @@ export default function ConcertDetailPage() {
         </p>
         <div className="pt-2">
           <Link
-            to="/fancam-concert"
+            to="/fancam-list"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-700 text-white text-xs font-semibold shadow-xs transition-colors"
           >
             <ArrowLeft size={16} />
@@ -169,7 +169,7 @@ export default function ConcertDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800/80">
         <div className="flex items-center gap-2 text-xs">
           <Link
-            to="/fancam-concert"
+            to="/fancam-list"
             className="inline-flex items-center gap-1.5 text-slate-500 hover:text-fuchsia-600 dark:text-slate-400 dark:hover:text-fuchsia-400 font-medium transition-colors"
           >
             <ArrowLeft size={14} />
@@ -424,6 +424,103 @@ export default function ConcertDetailPage() {
             )}
 
             {/* Songs Grid List */}
+            {/* Songs Grouped by Artist */}
+            {filteredVideos.length === 0 ? (
+              <div className="py-12 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-6">
+                <p className="text-xs text-slate-500">
+                  Tidak ada lagu yang cocok dengan pencarian \"{searchSong}\".
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {uniqueArtists.map((artist) => {
+                  const vids = filteredVideos.filter(
+                    (v) => ((v.artist || concert?.eventName || 'Artis').trim()) === artist
+                  );
+                  if (vids.length === 0) return null;
+                  return (
+                    <div key={artist}>
+                      <h3 className="text-lg font-semibold mb-3 text-fuchsia-600 dark:text-fuchsia-400">
+                        {artist} ({vids.length})
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {vids.map((vid) => {
+                          const origIdx = videos.findIndex((v) => v === vid);
+                          const isCurrent = origIdx === activeVideoIndex;
+                          const parsed = parseVideoUrl(vid.videoUrl);
+                          return (
+                            <div
+                              key={vid.id || origIdx}
+                              onClick={() => {
+                                setActiveVideoIndex(origIdx);
+                                window.scrollTo({ top: 320, behavior: 'smooth' });
+                              }}
+                              className={`group flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs ${isCurrent
+                                ? 'border-fuchsia-500 bg-fuchsia-50/50 dark:bg-fuchsia-950/30 ring-2 ring-fuchsia-500/20'
+                                : 'border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-fuchsia-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                            >
+                              {/* Thumbnail with status badge */}
+                              <div className="relative w-20 h-14 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                                {parsed.thumbnailUrl ? (
+                                  <img
+                                    src={parsed.thumbnailUrl}
+                                    alt={vid.songTitle}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-900 to-indigo-950 flex items-center justify-center">
+                                    <Music size={18} className="text-white/60" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                                  <div
+                                    className={`w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-transform ${isCurrent
+                                      ? 'bg-fuchsia-600 text-white scale-110'
+                                      : 'bg-black/60 text-white group-hover:bg-fuchsia-600 group-hover:scale-110'}`}
+                                  >
+                                    <Play size={11} className="ml-0.5 fill-current" />
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Song Info */}
+                              <div className="flex-1 min-w-0 space-y-0.5">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] font-mono font-bold text-slate-400">
+                                    #{origIdx + 1}
+                                  </span>
+                                  {isCurrent && (
+                                    <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-fuchsia-600 text-white">
+                                      Diputar
+                                    </span>
+                                  )}
+                                </div>
+                                <h4
+                                  className={`text-xs sm:text-sm font-bold truncate transition-colors ${isCurrent
+                                    ? 'text-fuchsia-600 dark:text-fuchsia-400'
+                                    : 'text-slate-900 dark:text-slate-100 group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400'}`}
+                                >
+                                  {vid.songTitle || 'Lagu Konser'}
+                                </h4>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                  {vid.artist || concert.eventName}
+                                </p>
+                              </div>
+                              <div
+                                className={`text-slate-400 transition-colors pr-1 ${isCurrent
+                                  ? 'text-fuchsia-600 dark:text-fuchsia-400'
+                                  : 'group-hover:text-fuchsia-500'}`}
+                              >
+                                <ChevronRight size={16} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
             {filteredVideos.length === 0 ? (
               <div className="py-12 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-6">
                 <p className="text-xs text-slate-500">
@@ -523,3 +620,4 @@ export default function ConcertDetailPage() {
     </div>
   );
 }
+

@@ -104,7 +104,7 @@ export const logoutUser = async () => {
 export const onAuthUserChanged = (callback) => {
   if (!auth) {
     callback(null);
-    return () => {};
+    return () => { };
   }
   return onAuthStateChanged(auth, callback);
 };
@@ -458,7 +458,7 @@ export const fetchProfileExtended = async () => {
     const snap = await getDoc(ref);
     if (snap.exists()) {
       const data = snap.data();
-      try { localStorage.setItem('hiras_profile_extended', JSON.stringify(data)); } catch {}
+      try { localStorage.setItem('hiras_profile_extended', JSON.stringify(data)); } catch { }
       return data;
     }
     return { experience: [], education: [] };
@@ -475,7 +475,7 @@ export const saveProfileExtended = async (data) => {
   if (!db) throw new Error('Firestore belum aktif.');
   const ref = doc(db, 'settings', 'profile_extended');
   await setDoc(ref, { ...data, updatedAt: serverTimestamp() }, { merge: true });
-  try { localStorage.setItem('hiras_profile_extended', JSON.stringify(data)); } catch {}
+  try { localStorage.setItem('hiras_profile_extended', JSON.stringify(data)); } catch { }
   return data;
 };
 
@@ -499,7 +499,7 @@ export const fetchConcertEvents = async () => {
       const timeB = new Date(b.date || 0).getTime() || (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0);
       return timeB - timeA;
     });
-    try { localStorage.setItem('hiras_concert_events', JSON.stringify(list)); } catch {}
+    try { localStorage.setItem('hiras_concert_events', JSON.stringify(list)); } catch { }
     return list;
   } catch (err) {
     console.error('fetchConcertEvents error:', err);
@@ -516,7 +516,7 @@ export const saveConcertEvent = async (data) => {
   if (!db) throw new Error('Firestore belum aktif.');
   const { id, ...payload } = data;
   payload.updatedAt = serverTimestamp();
-
+  nc
   if (!payload.slug && payload.eventName) {
     payload.slug = payload.eventName
       .toLowerCase()
@@ -547,7 +547,7 @@ export const fetchConcertEventById = async (idOrSlug) => {
       );
       if (found) return found;
     }
-  } catch {}
+  } catch { }
 
   if (!db) return null;
 
