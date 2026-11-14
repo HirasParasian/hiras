@@ -19,6 +19,8 @@ import {
   Play,
   Loader2,
   AlertCircle,
+  Smartphone,
+  Monitor,
 } from 'lucide-react';
 import { fetchConcertEventById } from '../services/firebase';
 import VideoPlayer from '../components/VideoPlayer';
@@ -33,6 +35,14 @@ export default function ConcertDetailPage() {
   const [searchSong, setSearchSong] = useState('');
   const [selectedArtist, setSelectedArtist] = useState('Semua');
   const [copied, setCopied] = useState(false);
+
+  // Default orientasi video: portrait di mobile (< 640px), landscape di desktop
+  const [isPortrait, setIsPortrait] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 640;
+    }
+    return true;
+  });
 
   // SEO
   usePageSEO({
@@ -310,8 +320,36 @@ export default function ConcertDetailPage() {
                   </h2>
                 </div>
 
-                {/* Player Controls (Prev / Next & Source) */}
+                {/* Player Controls (Prev / Next & Source & Orientation) */}
                 <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  {/* Orientation Switcher (Portrait / Landscape) */}
+                  <button
+                    type="button"
+                    onClick={() => setIsPortrait((prev) => !prev)}
+                    className={`px-2.5 py-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold ${
+                      isPortrait
+                        ? 'border-fuchsia-500/50 bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400'
+                        : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }`}
+                    title={
+                      isPortrait
+                        ? 'Mode Portrait Aktif (Klik untuk Landscape)'
+                        : 'Mode Landscape Aktif (Klik untuk Portrait)'
+                    }
+                  >
+                    {isPortrait ? (
+                      <>
+                        <Smartphone size={15} className="text-fuchsia-500" />
+                        <span className="text-[11px]">Portrait</span>
+                      </>
+                    ) : (
+                      <>
+                        <Monitor size={15} />
+                        <span className="text-[11px]">Landscape</span>
+                      </>
+                    )}
+                  </button>
+
                   <button
                     type="button"
                     onClick={handlePrevVideo}
@@ -347,12 +385,16 @@ export default function ConcertDetailPage() {
               </div>
 
               {/* Video Embed Player */}
-              <div className="w-full rounded-2xl overflow-hidden bg-black shadow-inner">
+              <div
+                className={`w-full rounded-2xl overflow-hidden bg-black shadow-inner flex items-center justify-center transition-all duration-300 ${
+                  isPortrait ? 'max-w-xs sm:max-w-sm mx-auto' : ''
+                }`}
+              >
                 <VideoPlayer
                   url={activeVideo.videoUrl}
                   title={`${activeVideo.artist || ''} - ${activeVideo.songTitle || ''}`}
                   autoPlay={false}
-                  aspectRatio="16/9"
+                  aspectRatio={isPortrait ? 'aspect-[9/16]' : 'aspect-video'}
                 />
               </div>
 

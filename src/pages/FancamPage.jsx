@@ -721,7 +721,7 @@ export default function FancamPage() {
       {/* ========================================== */}
       {activeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-4xl bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+          <div className="relative w-full max-w-sm sm:max-w-4xl bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
             {/* Modal Header */}
             <div className="p-4 sm:px-6 sm:py-3.5 border-b border-slate-800/80 flex items-center justify-between text-white bg-slate-900/60">
               <div className="flex items-center gap-2 min-w-0 pr-2">
@@ -773,6 +773,8 @@ export default function FancamPage() {
                 title={`${activeModal.video.artist} - ${activeModal.video.songTitle}`}
                 artist={activeModal.video.artist}
                 autoPlay={true}
+                aspectRatio="aspect-[9/16] sm:aspect-video"
+                className="max-h-[75vh]"
               />
             </div>
 

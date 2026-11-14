@@ -2,13 +2,20 @@ import React, { useState } from 'react';
 import { ExternalLink, Play, AlertCircle, RefreshCw } from 'lucide-react';
 import { parseVideoUrl } from '../utils/videoUtils';
 
-export default function VideoPlayer({ url, title, artist, className = '', autoPlay = true }) {
+export default function VideoPlayer({
+  url,
+  title,
+  artist,
+  className = '',
+  autoPlay = true,
+  aspectRatio = 'aspect-video',
+}) {
   const [loadError, setLoadError] = useState(false);
   const parsed = parseVideoUrl(url);
 
   if (!url) {
     return (
-      <div className={`w-full aspect-video bg-slate-900 rounded-2xl flex flex-col items-center justify-center text-slate-500 text-xs p-4 ${className}`}>
+      <div className={`w-full ${aspectRatio} bg-slate-900 rounded-2xl flex flex-col items-center justify-center text-slate-500 text-xs p-4 ${className}`}>
         <Play size={32} className="opacity-40 mb-2" />
         <span>Tautan video belum tersedia.</span>
       </div>
@@ -18,7 +25,7 @@ export default function VideoPlayer({ url, title, artist, className = '', autoPl
   // 1. YouTube Player
   if (parsed.type === 'youtube') {
     return (
-      <div className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
+      <div className={`relative w-full ${aspectRatio} bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
         <iframe
           src={parsed.embedUrl}
           title={title || 'Fancam Video'}
@@ -33,7 +40,7 @@ export default function VideoPlayer({ url, title, artist, className = '', autoPl
   // 2. Google Drive Player
   if (parsed.type === 'drive') {
     return (
-      <div className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
+      <div className={`relative w-full ${aspectRatio} bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
         <iframe
           src={parsed.embedUrl}
           title={title || 'Google Drive Video'}
@@ -48,7 +55,7 @@ export default function VideoPlayer({ url, title, artist, className = '', autoPl
   // 3. Vimeo Player
   if (parsed.type === 'vimeo') {
     return (
-      <div className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
+      <div className={`relative w-full ${aspectRatio} bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
         <iframe
           src={parsed.embedUrl}
           title={title || 'Vimeo Video'}
@@ -63,7 +70,7 @@ export default function VideoPlayer({ url, title, artist, className = '', autoPl
   // 4. Streamable Player
   if (parsed.type === 'streamable') {
     return (
-      <div className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
+      <div className={`relative w-full ${aspectRatio} bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
         <iframe
           src={parsed.embedUrl}
           title={title || 'Streamable Video'}
@@ -78,7 +85,7 @@ export default function VideoPlayer({ url, title, artist, className = '', autoPl
   // 5. Direct Video File (.mp4, .webm, Dropbox raw, Cloudinary Video)
   if (parsed.type === 'direct') {
     return (
-      <div className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
+      <div className={`relative w-full ${aspectRatio} bg-black rounded-2xl overflow-hidden shadow-2xl ${className}`}>
         <video
           controls
           autoPlay={autoPlay}
@@ -113,7 +120,7 @@ export default function VideoPlayer({ url, title, artist, className = '', autoPl
 
   // 4. Fallback Generic Web Link
   return (
-    <div className={`w-full aspect-video bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl flex flex-col items-center justify-center p-6 text-center text-slate-300 border border-slate-800 ${className}`}>
+    <div className={`w-full ${aspectRatio} bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl flex flex-col items-center justify-center p-6 text-center text-slate-300 border border-slate-800 ${className}`}>
       <Play size={40} className="text-blue-400 mb-3" />
       <h4 className="text-sm font-semibold text-white mb-1">
         {title || 'Tonton Video Fancam'}
