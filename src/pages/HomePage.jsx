@@ -13,8 +13,15 @@ import {
 import { defaultProfile, defaultBooks, defaultArticles } from '../data/defaultData';
 import { fetchBooks, fetchArticles, fetchSiteStats, fetchBioProfile } from '../services/firebase';
 import { getDynamicStats } from '../utils/stats';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function HomePage() {
+  usePageSEO({
+    title: 'Personal Web & Catatan',
+    description: 'Website pribadi Hiras Parasian: catatan buku bacaan, artikel, portofolio project.',
+    url: 'https://www.hiras.my.id/',
+  });
+
   const [books, setBooks] = useState(defaultBooks);
   const [articles, setArticles] = useState(defaultArticles);
   const [profile, setProfile] = useState(() => {

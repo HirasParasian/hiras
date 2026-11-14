@@ -3,8 +3,15 @@ import { Link } from 'react-router-dom';
 import { PenTool, Search, Clock, ArrowRight } from 'lucide-react';
 import { fetchArticles } from '../services/firebase';
 import { defaultArticles } from '../data/defaultData';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function ArticlesPage() {
+  usePageSEO({
+    title: 'Artikel & Tulisan',
+    description: 'Kumpulan artikel dan tulisan apa saja.',
+    url: 'https://www.hiras.my.id/artikel',
+  });
+
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

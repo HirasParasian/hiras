@@ -16,8 +16,15 @@ import { defaultBooks } from '../data/defaultData';
 import { useAuth } from '../context/AuthContext';
 import ExcelImportModal from '../components/ExcelImportModal';
 import { downloadBookTemplate } from '../services/excelService';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function BooksPage() {
+  usePageSEO({
+    title: 'Daftar Buku Bacaan',
+    description: 'Koleksi buku cetak fisik di rak & kotak dan buku online/e-book yang pernah dan sedang ditelaah oleh Hiras Parasian.',
+    url: 'https://www.hiras.my.id/list-book',
+  });
+
   const { isAdmin } = useAuth();
   const [books, setBooks] = useState(defaultBooks);
   const [loading, setLoading] = useState(true);

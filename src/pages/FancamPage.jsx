@@ -20,8 +20,15 @@ import {
 import { fetchConcertEvents } from '../services/firebase';
 import VideoPlayer from '../components/VideoPlayer';
 import { parseVideoUrl } from '../utils/videoUtils';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function FancamPage() {
+  usePageSEO({
+    title: 'Fancam & Dokumentasi Konser Musik',
+    description: 'Arsip rekaman langsung (fancam), daftar lagu, dan momen panggung konser musik.',
+    url: 'https://www.hiras.my.id/fancam-concert',
+  });
+
   const [concerts, setConcerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -255,8 +262,8 @@ export default function FancamPage() {
               type="button"
               onClick={() => setViewMode('events')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${viewMode === 'events'
-                  ? 'bg-white dark:bg-slate-900 text-fuchsia-600 dark:text-fuchsia-400 shadow-xs font-semibold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                ? 'bg-white dark:bg-slate-900 text-fuchsia-600 dark:text-fuchsia-400 shadow-xs font-semibold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
             >
               <ListMusic size={14} />
@@ -267,8 +274,8 @@ export default function FancamPage() {
               type="button"
               onClick={() => setViewMode('artists')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${viewMode === 'artists'
-                  ? 'bg-white dark:bg-slate-900 text-fuchsia-600 dark:text-fuchsia-400 shadow-xs font-semibold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                ? 'bg-white dark:bg-slate-900 text-fuchsia-600 dark:text-fuchsia-400 shadow-xs font-semibold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
             >
               <Mic size={14} />
@@ -279,8 +286,8 @@ export default function FancamPage() {
               type="button"
               onClick={() => setViewMode('videos')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${viewMode === 'videos'
-                  ? 'bg-white dark:bg-slate-900 text-fuchsia-600 dark:text-fuchsia-400 shadow-xs font-semibold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                ? 'bg-white dark:bg-slate-900 text-fuchsia-600 dark:text-fuchsia-400 shadow-xs font-semibold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
             >
               <Tv size={14} />
@@ -301,8 +308,8 @@ export default function FancamPage() {
               type="button"
               onClick={() => setSelectedArtist('Semua')}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${selectedArtist === 'Semua'
-                  ? 'bg-fuchsia-600 text-white shadow-xs font-semibold'
-                  : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300'
+                ? 'bg-fuchsia-600 text-white shadow-xs font-semibold'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300'
                 }`}
             >
               Semua Artis ({allVideos.length})
@@ -314,14 +321,14 @@ export default function FancamPage() {
                 type="button"
                 onClick={() => setSelectedArtist(artistName)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${selectedArtist === artistName
-                    ? 'bg-fuchsia-600 text-white shadow-xs font-semibold'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300'
+                  ? 'bg-fuchsia-600 text-white shadow-xs font-semibold'
+                  : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300'
                   }`}
               >
                 <span>{artistName}</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedArtist === artistName
-                    ? 'bg-fuchsia-700 text-fuchsia-100'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                  ? 'bg-fuchsia-700 text-fuchsia-100'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                   }`}>
                   {artistCounts[artistName]}
                 </span>

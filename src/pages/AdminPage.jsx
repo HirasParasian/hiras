@@ -62,8 +62,15 @@ import { downloadBookTemplate } from '../services/excelService';
 import { generateShortId } from '../utils/shortId';
 import { defaultBooks, defaultArticles } from '../data/defaultData';
 import { bioProfile } from '../data/linksData';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function AdminPage() {
+  usePageSEO({
+    title: 'Admin Dashboard',
+    description: 'Panel pengelolaan konten website Hiras Parasian.',
+    noindex: true,
+  });
+
   const { currentUser, isAdmin, loading: authLoading, loginEmail, loginGoogle, logout } = useAuth();
 
   // Login form state

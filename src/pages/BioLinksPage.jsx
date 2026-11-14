@@ -22,8 +22,9 @@ import {
   Roblox,
 } from '../components/Icons';
 import { bioProfile, bioLinkGroups } from '../data/linksData';
-import { fetchBioProfile } from '../services/firebase';
+import { fetchBioProfile, fetchProfileExtended } from '../services/firebase';
 import ThemeToggle from '../components/ThemeToggle';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 // Mapping icon identifier to React component
 const iconMap = {
@@ -41,6 +42,12 @@ const iconMap = {
 };
 
 export default function BioLinksPage() {
+  usePageSEO({
+    title: 'Tentang Saya, Karir & Kontak',
+    description: 'Profil profesional Hiras Parasian: Software Engineer, riwayat pengalaman kerja, pendidikan, dan tautan sosial.',
+    url: 'https://www.hiras.my.id/me',
+  });
+
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [profile, setProfile] = useState(() => {
     try {

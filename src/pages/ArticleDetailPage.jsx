@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, Share2, Check, ShieldAlert } from 'lucide-react';
 import { fetchArticleByShortId } from '../services/firebase';
 import { defaultArticles, defaultProfile } from '../data/defaultData';
 import { useAuth } from '../context/AuthContext';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function ArticleDetailPage() {
   const { id } = useParams();
@@ -11,6 +12,13 @@ export default function ArticleDetailPage() {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+
+  usePageSEO({
+    title: article?.title ? article.title : 'Detail Artikel',
+    description: article?.summary || 'Artikel oleh Hiras Parasian',
+    image: article?.coverImage || 'https://www.hiras.my.id/icon-512.png',
+    type: 'article',
+  });
 
   useEffect(() => {
     const loadArticle = async () => {

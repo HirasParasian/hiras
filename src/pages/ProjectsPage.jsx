@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ExternalLink, Code2, Sparkles, Globe, Layers, Loader2 } from 'lucide-react';
 import { Github } from '../components/Icons';
 import { fetchProjects } from '../services/firebase';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 const STATUS_LABELS = {
   selesai: 'Selesai',
@@ -28,11 +29,10 @@ function ProjectCard({ project }) {
 
   return (
     <div
-      className={`group flex flex-col rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 ${
-        project.featured
+      className={`group flex flex-col rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 ${project.featured
           ? 'border-blue-400 dark:border-blue-700 ring-1 ring-blue-400/30 dark:ring-blue-700/30'
           : 'border-slate-200 dark:border-slate-800'
-      }`}
+        }`}
     >
       {/* Cover Image (16:9) */}
       <div className="relative w-full aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden">
@@ -132,6 +132,12 @@ function ProjectCard({ project }) {
 }
 
 export default function ProjectsPage() {
+  usePageSEO({
+    title: 'Portofolio Project',
+    description: 'Kumpulan project yang pernah saya buat.',
+    url: 'https://www.hiras.my.id/proyek',
+  });
+
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('semua');
@@ -185,19 +191,17 @@ export default function ProjectsPage() {
             key={f.key}
             type="button"
             onClick={() => setFilter(f.key)}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer border ${
-              filter === f.key
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer border ${filter === f.key
                 ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
-            }`}
+              }`}
           >
             <span>{f.label}</span>
             <span
-              className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                filter === f.key
+              className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filter === f.key
                   ? 'bg-white/20 text-white'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-              }`}
+                }`}
             >
               {f.count}
             </span>
