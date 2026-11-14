@@ -52,9 +52,8 @@ export default function ConcertDetailPage() {
     description:
       concert?.notes ||
       (concert?.eventName
-        ? `Dokumentasi rekaman panggung fancam ${concert.eventName}${
-            concert.venue ? ` di ${concert.venue}` : ''
-          }.`
+        ? `Dokumentasi rekaman panggung fancam ${concert.eventName}${concert.venue ? ` di ${concert.venue}` : ''
+        }.`
         : 'Arsip rekaman fancam konser musik.'),
     image: concert?.coverImage || 'https://www.hiras.my.id/icon-512.png',
     url: `https://www.hiras.my.id/fancam-concert/${id}`,
@@ -178,13 +177,6 @@ export default function ConcertDetailPage() {
       {/* ========================================== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800/80">
         <div className="flex items-center gap-2 text-xs">
-          <Link
-            to="/fancam-list"
-            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-fuchsia-600 dark:text-slate-400 dark:hover:text-fuchsia-400 font-medium transition-colors"
-          >
-            <ArrowLeft size={14} />
-            <span>Semua Konser</span>
-          </Link>
           <span className="text-slate-300 dark:text-slate-700">/</span>
           <span className="text-slate-700 dark:text-slate-300 font-semibold truncate max-w-[200px] sm:max-w-sm">
             {concert.eventName}
@@ -326,11 +318,10 @@ export default function ConcertDetailPage() {
                   <button
                     type="button"
                     onClick={() => setIsPortrait((prev) => !prev)}
-                    className={`px-2.5 py-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold ${
-                      isPortrait
+                    className={`px-2.5 py-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold ${isPortrait
                         ? 'border-fuchsia-500/50 bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400'
                         : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-                    }`}
+                      }`}
                     title={
                       isPortrait
                         ? 'Mode Portrait Aktif (Klik untuk Landscape)'
@@ -386,9 +377,8 @@ export default function ConcertDetailPage() {
 
               {/* Video Embed Player */}
               <div
-                className={`w-full rounded-2xl overflow-hidden bg-black shadow-inner flex items-center justify-center transition-all duration-300 ${
-                  isPortrait ? 'max-w-xs sm:max-w-sm mx-auto' : ''
-                }`}
+                className={`w-full rounded-2xl overflow-hidden bg-black shadow-inner flex items-center justify-center transition-all duration-300 ${isPortrait ? 'max-w-xs sm:max-w-sm mx-auto' : ''
+                  }`}
               >
                 <VideoPlayer
                   url={activeVideo.videoUrl}
@@ -439,11 +429,10 @@ export default function ConcertDetailPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedArtist('Semua')}
-                  className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                    selectedArtist === 'Semua'
+                  className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${selectedArtist === 'Semua'
                       ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
                       : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   Semua Penyanyi ({videos.length})
                 </button>
@@ -452,11 +441,10 @@ export default function ConcertDetailPage() {
                     key={artist}
                     type="button"
                     onClick={() => setSelectedArtist(artist)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                      selectedArtist === artist
+                    className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${selectedArtist === artist
                         ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
                         : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                    }`}
+                      }`}
                   >
                     <span>{artist}</span>
                     <span className="text-[10px] opacity-75">({artistCounts[artist]})</span>
@@ -496,11 +484,10 @@ export default function ConcertDetailPage() {
                                 setActiveVideoIndex(origIdx);
                                 window.scrollTo({ top: 320, behavior: 'smooth' });
                               }}
-                              className={`group flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs ${
-                                isCurrent
+                              className={`group flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs ${isCurrent
                                   ? 'border-fuchsia-500 bg-fuchsia-50/50 dark:bg-fuchsia-950/30 ring-2 ring-fuchsia-500/20'
                                   : 'border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-fuchsia-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                              }`}
+                                }`}
                             >
                               {/* Thumbnail with status badge */}
                               <div className="relative w-20 h-14 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
@@ -517,11 +504,10 @@ export default function ConcertDetailPage() {
                                 )}
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
                                   <div
-                                    className={`w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-transform ${
-                                      isCurrent
+                                    className={`w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-transform ${isCurrent
                                         ? 'bg-fuchsia-600 text-white scale-110'
                                         : 'bg-black/60 text-white group-hover:bg-fuchsia-600 group-hover:scale-110'
-                                    }`}
+                                      }`}
                                   >
                                     <Play size={11} className="ml-0.5 fill-current" />
                                   </div>
@@ -540,11 +526,10 @@ export default function ConcertDetailPage() {
                                   )}
                                 </div>
                                 <h4
-                                  className={`text-xs sm:text-sm font-bold truncate transition-colors ${
-                                    isCurrent
+                                  className={`text-xs sm:text-sm font-bold truncate transition-colors ${isCurrent
                                       ? 'text-fuchsia-600 dark:text-fuchsia-400'
                                       : 'text-slate-900 dark:text-slate-100 group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400'
-                                  }`}
+                                    }`}
                                 >
                                   {vid.songTitle || 'Lagu Konser'}
                                 </h4>
@@ -553,11 +538,10 @@ export default function ConcertDetailPage() {
                                 </p>
                               </div>
                               <div
-                                className={`text-slate-400 transition-colors pr-1 ${
-                                  isCurrent
+                                className={`text-slate-400 transition-colors pr-1 ${isCurrent
                                     ? 'text-fuchsia-600 dark:text-fuchsia-400'
                                     : 'group-hover:text-fuchsia-500'
-                                }`}
+                                  }`}
                               >
                                 <ChevronRight size={16} />
                               </div>
