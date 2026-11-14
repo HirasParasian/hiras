@@ -22,6 +22,12 @@ export default function HomePage() {
     url: 'https://www.hiras.my.id/',
   });
 
+  usePageSEO({
+    title: 'Personal Web & Catatan',
+    description: 'Website pribadi Hiras Parasian: catatan buku bacaan, artikel rekayasa perangkat lunak, portofolio proyek, dan arsip fancam konser.',
+    url: 'https://www.hiras.my.id/',
+  });
+
   const [books, setBooks] = useState(defaultBooks);
   const [articles, setArticles] = useState(defaultArticles);
   const [profile, setProfile] = useState(() => {

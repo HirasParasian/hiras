@@ -12,6 +12,12 @@ export default function ArticlesPage() {
     url: 'https://www.hiras.my.id/artikel',
   });
 
+  usePageSEO({
+    title: 'Artikel & Tulisan',
+    description: 'Kumpulan artikel dan tulisan seputar rekayasa perangkat lunak, arsitektur web modern, dan refleksi teknologi oleh Hiras Parasian.',
+    url: 'https://www.hiras.my.id/artikel',
+  });
+
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

@@ -69,3 +69,4 @@ export function usePageSEO({
     setCanonical(pageUrl);
   }, [title, description, image, url, type, noindex]);
 }
+

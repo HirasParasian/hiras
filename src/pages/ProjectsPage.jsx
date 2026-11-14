@@ -138,6 +138,12 @@ export default function ProjectsPage() {
     url: 'https://www.hiras.my.id/proyek',
   });
 
+  usePageSEO({
+    title: 'Portofolio Proyek',
+    description: 'Kumpulan karya proyek rekayasa perangkat lunak, sistem web modern, dan open source yang dibangun oleh Hiras Parasian.',
+    url: 'https://www.hiras.my.id/proyek',
+  });
+
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('semua');
