@@ -425,7 +425,7 @@ export default function ConcertDetailPage() {
 
             {/* Songs Grid List */}
             {/* Songs Grouped by Artist */}
-            {filteredVideos.length === 0 ? (
+
               <div className="py-12 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-6">
                 <p className="text-xs text-slate-500">
                   Tidak ada lagu yang cocok dengan pencarian \"{searchSong}\".
@@ -521,7 +521,7 @@ export default function ConcertDetailPage() {
                 })}
               </div>
             )
-            {filteredVideos.length === 0 ? (
+
               <div className="py-12 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-6">
                 <p className="text-xs text-slate-500">
                   Tidak ada lagu yang cocok dengan pencarian "{searchSong}".
