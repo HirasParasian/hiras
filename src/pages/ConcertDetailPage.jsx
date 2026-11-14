@@ -157,15 +157,6 @@ export default function ConcertDetailPage() {
         <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
           Tautan konser dengan ID <span className="font-mono text-fuchsia-600 dark:text-fuchsia-400">/{id}</span> mungkin telah dipindahkan atau belum ditambahkan.
         </p>
-        <div className="pt-2">
-          <Link
-            to="/fancam-list"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-700 text-white text-xs font-semibold shadow-xs transition-colors"
-          >
-            <ArrowLeft size={16} />
-            <span>Kembali ke Semua Konser</span>
-          </Link>
-        </div>
       </div>
     );
   }
@@ -319,8 +310,8 @@ export default function ConcertDetailPage() {
                     type="button"
                     onClick={() => setIsPortrait((prev) => !prev)}
                     className={`px-2.5 py-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold ${isPortrait
-                        ? 'border-fuchsia-500/50 bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400'
-                        : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                      ? 'border-fuchsia-500/50 bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400'
+                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     title={
                       isPortrait
@@ -430,8 +421,8 @@ export default function ConcertDetailPage() {
                   type="button"
                   onClick={() => setSelectedArtist('Semua')}
                   className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${selectedArtist === 'Semua'
-                      ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
-                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
+                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
                     }`}
                 >
                   Semua Penyanyi ({videos.length})
@@ -442,8 +433,8 @@ export default function ConcertDetailPage() {
                     type="button"
                     onClick={() => setSelectedArtist(artist)}
                     className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${selectedArtist === artist
-                        ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
-                        : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
+                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
                       }`}
                   >
                     <span>{artist}</span>
@@ -485,8 +476,8 @@ export default function ConcertDetailPage() {
                                 window.scrollTo({ top: 320, behavior: 'smooth' });
                               }}
                               className={`group flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs ${isCurrent
-                                  ? 'border-fuchsia-500 bg-fuchsia-50/50 dark:bg-fuchsia-950/30 ring-2 ring-fuchsia-500/20'
-                                  : 'border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-fuchsia-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                                ? 'border-fuchsia-500 bg-fuchsia-50/50 dark:bg-fuchsia-950/30 ring-2 ring-fuchsia-500/20'
+                                : 'border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-fuchsia-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                                 }`}
                             >
                               {/* Thumbnail with status badge */}
@@ -505,8 +496,8 @@ export default function ConcertDetailPage() {
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
                                   <div
                                     className={`w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-transform ${isCurrent
-                                        ? 'bg-fuchsia-600 text-white scale-110'
-                                        : 'bg-black/60 text-white group-hover:bg-fuchsia-600 group-hover:scale-110'
+                                      ? 'bg-fuchsia-600 text-white scale-110'
+                                      : 'bg-black/60 text-white group-hover:bg-fuchsia-600 group-hover:scale-110'
                                       }`}
                                   >
                                     <Play size={11} className="ml-0.5 fill-current" />
@@ -527,8 +518,8 @@ export default function ConcertDetailPage() {
                                 </div>
                                 <h4
                                   className={`text-xs sm:text-sm font-bold truncate transition-colors ${isCurrent
-                                      ? 'text-fuchsia-600 dark:text-fuchsia-400'
-                                      : 'text-slate-900 dark:text-slate-100 group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400'
+                                    ? 'text-fuchsia-600 dark:text-fuchsia-400'
+                                    : 'text-slate-900 dark:text-slate-100 group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400'
                                     }`}
                                 >
                                   {vid.songTitle || 'Lagu Konser'}
@@ -539,8 +530,8 @@ export default function ConcertDetailPage() {
                               </div>
                               <div
                                 className={`text-slate-400 transition-colors pr-1 ${isCurrent
-                                    ? 'text-fuchsia-600 dark:text-fuchsia-400'
-                                    : 'group-hover:text-fuchsia-500'
+                                  ? 'text-fuchsia-600 dark:text-fuchsia-400'
+                                  : 'group-hover:text-fuchsia-500'
                                   }`}
                               >
                                 <ChevronRight size={16} />
