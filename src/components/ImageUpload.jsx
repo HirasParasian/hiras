@@ -12,13 +12,17 @@ export default function ImageUpload({ value, onChange, label = 'Unggah Gambar Sa
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setError('Harap pilih file gambar (JPG, PNG, WebP).');
+    // Validasi tipe file via MIME type atau ekstensi (penting untuk HEIC/HEIF dari iPhone/Windows di mana file.type sering kosong)
+    const isImageByType = file.type ? file.type.startsWith('image/') || /heic|heif/i.test(file.type) : false;
+    const isImageByExt = /\.(jpe?g|png|webp|gif|svg|bmp|heic|heif|avif)$/i.test(file.name || '');
+
+    if (!isImageByType && !isImageByExt) {
+      setError('Harap pilih file gambar (JPG, PNG, WebP, HEIC/HEIF).');
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Ukuran gambar maksimal 10MB.');
+    if (file.size > 20 * 1024 * 1024) {
+      setError('Ukuran gambar maksimal 20MB.');
       return;
     }
 
@@ -65,7 +69,7 @@ export default function ImageUpload({ value, onChange, label = 'Unggah Gambar Sa
           <label className="flex-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-900/50 transition-colors w-full">
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,.heic,.heif,.HEIC,.HEIF"
               onChange={handleFileChange}
               disabled={uploading}
               className="hidden"
@@ -90,7 +94,7 @@ export default function ImageUpload({ value, onChange, label = 'Unggah Gambar Sa
                   Klik untuk memilih file gambar
                 </span>
                 <span className="text-[11px] text-slate-400">
-                  Cloudinary CDN {folder ? `• Folder: ${folder}` : ''} • JPG, PNG, WEBP (Maks 10MB)
+                  Cloudinary CDN {folder ? `• Folder: ${folder}` : ''} • JPG, PNG, WEBP, HEIC/HEIF (Maks 20MB)
                 </span>
               </div>
             )}
@@ -99,7 +103,7 @@ export default function ImageUpload({ value, onChange, label = 'Unggah Gambar Sa
           {value && (
             <div className="relative group w-24 h-28 shrink-0 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
               <img
-                src={value}
+                src={value ? value.replace(/\.(heic|heif)$/i, '.jpg') : ''}
                 alt="Pratinjau Cover"
                 className="w-full h-full object-cover"
               />

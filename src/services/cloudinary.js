@@ -48,8 +48,14 @@ export const uploadToCloudinary = async (file, onProgress, folder = '') => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const res = JSON.parse(xhr.responseText);
+          let finalUrl = res.secure_url || res.url;
+          // Cloudinary mendukung upload HEIC/HEIF, namun browser standar (Chrome/Firefox/Edge di PC) belum bisa me-render file .heic langsung di tag <img>.
+          // Mengganti ekstensi menjadi .jpg di URL Cloudinary membuat Cloudinary otomatis mengonversinya secara on-the-fly!
+          if (finalUrl && finalUrl.includes('cloudinary.com') && /\.(heic|heif)$/i.test(finalUrl)) {
+            finalUrl = finalUrl.replace(/\.(heic|heif)$/i, '.jpg');
+          }
           resolve({
-            url: res.secure_url || res.url,
+            url: finalUrl,
             publicId: res.public_id,
             format: res.format,
             width: res.width,
@@ -87,7 +93,10 @@ export const getOptimizedImageUrl = (originalUrl, width = 800, height = 500) => 
   if (!originalUrl) return '';
   if (!originalUrl.includes('cloudinary.com')) return originalUrl;
   
+  // Normalize .heic/.heif to .jpg so Cloudinary delivers universal format for any browser
+  const safeUrl = originalUrl.replace(/\.(heic|heif)$/i, '.jpg');
+
   // Example: https://res.cloudinary.com/<cloud>/image/upload/v1234/file.jpg
   // Target: https://res.cloudinary.com/<cloud>/image/upload/w_800,h_500,c_fill,q_auto,f_auto/v1234/file.jpg
-  return originalUrl.replace('/upload/', `/upload/w_${width},h_${height},c_fill,q_auto,f_auto/`);
+  return safeUrl.replace('/upload/', `/upload/w_${width},h_${height},c_fill,q_auto,f_auto/`);
 };
