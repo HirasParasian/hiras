@@ -516,7 +516,7 @@ export const saveConcertEvent = async (data) => {
   if (!db) throw new Error('Firestore belum aktif.');
   const { id, ...payload } = data;
   payload.updatedAt = serverTimestamp();
-  nc
+
   if (!payload.slug && payload.eventName) {
     payload.slug = payload.eventName
       .toLowerCase()

@@ -476,28 +476,38 @@ export default function AdminPage() {
 
   const handleSaveConcert = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (!concertForm.eventName.trim()) {
+    if (!concertForm.eventName || !concertForm.eventName.trim()) {
       showFeedback('error', 'Nama Event Konser wajib diisi.');
       return;
     }
 
     setSavingConcert(true);
     try {
-      // Filter out completely empty videos
-      const validVideos = (concertForm.videos || []).filter(
-        v => v.songTitle.trim() || v.videoUrl.trim()
-      );
+      // Filter out completely empty videos and sanitize data
+      const validVideos = (concertForm.videos || [])
+        .filter(v => (v.songTitle || '').trim() || (v.videoUrl || '').trim())
+        .map(v => ({
+          id: v.id || generateShortId(6),
+          artist: (v.artist || '').trim(),
+          songTitle: (v.songTitle || '').trim(),
+          videoUrl: (v.videoUrl || '').trim(),
+          notes: (v.notes || '').trim(),
+        }));
 
-      const slug = (concertForm.slug || concertForm.eventName || '')
+      const rawSlug = (concertForm.slug || concertForm.eventName || '')
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '');
 
       const payload = {
-        ...concertForm,
-        slug,
+        eventName: (concertForm.eventName || '').trim(),
+        date: concertForm.date || '',
+        venue: (concertForm.venue || '').trim(),
+        coverImage: concertForm.coverImage || '',
+        notes: (concertForm.notes || '').trim(),
+        slug: rawSlug,
         videos: validVideos,
-        id: editingConcertId || undefined,
+        ...(editingConcertId ? { id: editingConcertId } : {}),
       };
 
       await saveConcertEvent(payload);
