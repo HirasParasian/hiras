@@ -427,20 +427,30 @@ export default function ConcertDetailPage() {
                 >
                   Semua Penyanyi ({videos.length})
                 </button>
-                {uniqueArtists.map((artist) => (
-                  <button
-                    key={artist}
-                    type="button"
-                    onClick={() => setSelectedArtist(artist)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${selectedArtist === artist
-                      ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
-                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                      }`}
-                  >
-                    <span>{artist}</span>
-                    <span className="text-[10px] opacity-75">({artistCounts[artist]})</span>
-                  </button>
-                ))}
+                {uniqueArtists.map((artist) => {
+                  const artistData = (concert.artists && concert.artists[artist]) || {};
+                  return (
+                    <button
+                      key={artist}
+                      type="button"
+                      onClick={() => setSelectedArtist(artist)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${selectedArtist === artist
+                        ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
+                        : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                        }`}
+                    >
+                      {artistData.coverImage && (
+                        <img
+                          src={artistData.coverImage}
+                          alt={artist}
+                          className="w-4 h-4 rounded-full object-cover"
+                        />
+                      )}
+                      <span>{artist}</span>
+                      <span className="text-[10px] opacity-75">({artistCounts[artist]})</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
 
@@ -452,17 +462,59 @@ export default function ConcertDetailPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {uniqueArtists.map((artist) => {
                   const vids = filteredVideos.filter(
                     (v) => ((v.artist || concert?.eventName || 'Artis').trim()) === artist
                   );
                   if (vids.length === 0) return null;
+                  const artistData = (concert.artists && concert.artists[artist]) || {};
+
                   return (
-                    <div key={artist}>
-                      <h3 className="text-lg font-semibold mb-3 text-fuchsia-600 dark:text-fuchsia-400">
-                        {artist} ({vids.length})
-                      </h3>
+                    <div key={artist} className="space-y-4">
+                      {/* Artist Header / Card with Cover and Bio */}
+                      <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/80 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        {artistData.coverImage ? (
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs">
+                            <img
+                              src={artistData.coverImage}
+                              alt={artist}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-fuchsia-600 to-indigo-600 shrink-0 flex items-center justify-center text-white shadow-xs">
+                            <Mic size={28} className="opacity-90" />
+                          </div>
+                        )}
+
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
+                              {artist}
+                            </h3>
+                            {artistData.genre && (
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-fuchsia-100 dark:bg-fuchsia-950/80 text-fuchsia-600 dark:text-fuchsia-400">
+                                {artistData.genre}
+                              </span>
+                            )}
+                            <span className="text-xs text-slate-400">
+                              • {vids.length} Rekaman Fancam
+                            </span>
+                          </div>
+
+                          {artistData.bio ? (
+                            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                              {artistData.bio}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-slate-400 italic">
+                              Rekaman lagu panggung {artist} di konser ini.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {vids.map((vid) => {
                           const origIdx = videos.findIndex((v) => v === vid);

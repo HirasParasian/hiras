@@ -557,25 +557,53 @@ export default function FancamPage() {
                   className="rounded-3xl border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-4 shadow-xs"
                 >
                   {/* Artist Header Box */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-fuchsia-600 to-indigo-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
-                        <Mic size={20} />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                          {artistName}
-                        </h3>
-                        <p className="text-xs text-slate-500">
-                          {songs.length} Video Fancam Dikoleksi
-                        </p>
-                      </div>
-                    </div>
+                  {(() => {
+                    // Try to locate cover and details from any concert event featuring this artist
+                    const artistInfo = songs.reduce((found, s) => {
+                      if (found) return found;
+                      const art = s.event?.artists && s.event.artists[artistName];
+                      if (art && (art.coverImage || art.bio || art.genre)) return art;
+                      return null;
+                    }, null) || {};
 
-                    <span className="self-start sm:self-auto text-[11px] font-mono px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                      {Array.from(new Set(songs.map((s) => s.event?.eventName).filter(Boolean))).length} Konser Berbeda
-                    </span>
-                  </div>
+                    return (
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-3">
+                          {artistInfo.coverImage ? (
+                            <img
+                              src={artistInfo.coverImage}
+                              alt={artistName}
+                              className="w-12 h-12 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-xs shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-fuchsia-600 to-indigo-600 text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0">
+                              <Mic size={20} />
+                            </div>
+                          )}
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                                {artistName}
+                              </h3>
+                              {artistInfo.genre && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-fuchsia-100 dark:bg-fuchsia-950/80 text-fuchsia-600 dark:text-fuchsia-400">
+                                  {artistInfo.genre}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500">
+                              {songs.length} Video Fancam Dikoleksi
+                              {artistInfo.bio && ` • ${artistInfo.bio}`}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="self-start sm:self-auto text-[11px] font-mono px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                          {Array.from(new Set(songs.map((s) => s.event?.eventName).filter(Boolean))).length} Konser Berbeda
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   {/* Songs Grid for this Artist */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">

@@ -173,6 +173,7 @@ export default function AdminPage() {
     venue: '',
     coverImage: '',
     notes: '',
+    artists: {},
     videos: [
       { id: generateShortId(6), artist: '', songTitle: '', videoUrl: '', notes: '' }
     ],
@@ -426,6 +427,7 @@ export default function AdminPage() {
       venue: '',
       coverImage: '',
       notes: '',
+      artists: {},
       videos: [
         { id: generateShortId(6), artist: '', songTitle: '', videoUrl: '', notes: '' }
       ],
@@ -441,6 +443,7 @@ export default function AdminPage() {
       venue: concert.venue || '',
       coverImage: concert.coverImage || '',
       notes: concert.notes || '',
+      artists: (concert.artists && typeof concert.artists === 'object') ? concert.artists : {},
       videos: Array.isArray(concert.videos) && concert.videos.length > 0
         ? concert.videos.map(v => ({ ...v, id: v.id || generateShortId(6) }))
         : [{ id: generateShortId(6), artist: '', songTitle: '', videoUrl: '', notes: '' }],
@@ -474,6 +477,17 @@ export default function AdminPage() {
     });
   };
 
+  const handleUpdateArtistInfo = (artistName, field, value) => {
+    setConcertForm(prev => {
+      const currentArtists = { ...(prev.artists || {}) };
+      currentArtists[artistName] = {
+        ...(currentArtists[artistName] || {}),
+        [field]: value
+      };
+      return { ...prev, artists: currentArtists };
+    });
+  };
+
   const handleSaveConcert = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!concertForm.eventName || !concertForm.eventName.trim()) {
@@ -499,6 +513,21 @@ export default function AdminPage() {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '');
 
+      // Sanitize artists map
+      const sanitizedArtists = {};
+      if (concertForm.artists && typeof concertForm.artists === 'object') {
+        Object.entries(concertForm.artists).forEach(([name, data]) => {
+          const cleanName = (name || '').trim();
+          if (cleanName && data && typeof data === 'object') {
+            sanitizedArtists[cleanName] = {
+              coverImage: data.coverImage || '',
+              bio: (data.bio || '').trim(),
+              genre: (data.genre || '').trim(),
+            };
+          }
+        });
+      }
+
       const payload = {
         eventName: (concertForm.eventName || '').trim(),
         date: concertForm.date || '',
@@ -506,6 +535,7 @@ export default function AdminPage() {
         coverImage: concertForm.coverImage || '',
         notes: (concertForm.notes || '').trim(),
         slug: rawSlug,
+        artists: sanitizedArtists,
         videos: validVideos,
         ...(editingConcertId ? { id: editingConcertId } : {}),
       };
@@ -2830,6 +2860,89 @@ export default function AdminPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* 3. Artists Detail & Cover Section */}
+                {(() => {
+                  const uniqueArtistNames = Array.from(
+                    new Set(
+                      (concertForm.videos || [])
+                        .map((v) => (v.artist || '').trim())
+                        .filter(Boolean)
+                    )
+                  );
+
+                  if (uniqueArtistNames.length === 0) return null;
+
+                  return (
+                    <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                          <Mic size={16} className="text-fuchsia-600 dark:text-fuchsia-400" />
+                          <span>Profil & Cover Penyanyi / Artis ({uniqueArtistNames.length})</span>
+                        </h4>
+                        <p className="text-[11px] text-slate-500">
+                          Otomatis terdeteksi dari daftar penyanyi di atas. Anda bisa mengunggah cover/foto serta bio singkat untuk tiap artis di event ini.
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        {uniqueArtistNames.map((artistName) => {
+                          const artistInfo = (concertForm.artists && concertForm.artists[artistName]) || {};
+                          return (
+                            <div
+                              key={artistName}
+                              className="p-4 rounded-2xl border border-fuchsia-100 dark:border-fuchsia-950/60 bg-white dark:bg-slate-900/60 shadow-xs space-y-3"
+                            >
+                              <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                <span className="w-2 h-2 rounded-full bg-fuchsia-500"></span>
+                                <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                                  {artistName}
+                                </h5>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="sm:col-span-2">
+                                  <ImageUpload
+                                    value={artistInfo.coverImage || ''}
+                                    onChange={(url) => handleUpdateArtistInfo(artistName, 'coverImage', url)}
+                                    folder="Artists"
+                                    label={`Foto Profil / Cover ${artistName} (Opsional)`}
+                                  />
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                                    Genre Musik
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={artistInfo.genre || ''}
+                                    onChange={(e) => handleUpdateArtistInfo(artistName, 'genre', e.target.value)}
+                                    placeholder="Contoh: Pop, Rock, Indie R&B"
+                                    className="w-full px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                                  />
+                                </div>
+
+                                <div className="space-y-1 sm:col-span-2">
+                                  <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                                    Bio Singkat / Catatan Artis
+                                  </label>
+                                  <textarea
+                                    rows={2}
+                                    value={artistInfo.bio || ''}
+                                    onChange={(e) => handleUpdateArtistInfo(artistName, 'bio', e.target.value)}
+                                    placeholder={`Deskripsi singkat mengenai ${artistName} di konser ini...`}
+                                    className="w-full px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Form Buttons */}
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
