@@ -27,8 +27,7 @@ import { parseVideoUrl } from '../utils/videoUtils';
 import { usePageSEO } from '../hooks/usePageSEO';
 
 export default function ConcertArtistDetailPage() {
-  const { id, artistName } = useParams();
-  const decodedArtist = decodeURIComponent(artistName || '');
+  const { id, artistSlug, randomCode } = useParams();
 
   const [concert, setConcert] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,26 +71,65 @@ export default function ConcertArtistDetailPage() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [id, artistName]);
+  }, [id, artistSlug, randomCode]);
 
   const allVideos = concert?.videos || [];
-  // Filter video khusus artist ini
-  const artistVideos = allVideos.filter(
-    (v) => (v.artist || concert?.eventName || 'Artis').trim().toLowerCase() === decodedArtist.toLowerCase()
-  );
 
-  const artistData = (concert?.artists && concert.artists[decodedArtist]) || {};
+  // Cari artist yang cocok berdasarkan randomCode dan slug
+  const matchedArtistEntry = concert?.artists
+    ? Object.entries(concert.artists).find(([name, data]) => {
+        const generatedSlug = name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '');
+        const slugMatch = generatedSlug === (artistSlug || '').toLowerCase();
+        const codeMatch = (data?.code || 'main') === randomCode;
+        return slugMatch && codeMatch;
+      })
+    : null;
+
+  // Fallback jika concert belum memiliki map artists, cari nama artis dari videos yang slug-nya cocok
+  let matchedArtistName = matchedArtistEntry ? matchedArtistEntry[0] : null;
+  let artistData = matchedArtistEntry ? matchedArtistEntry[1] : {};
+
+  if (!matchedArtistName && concert) {
+    const fallbackName = Array.from(
+      new Set(allVideos.map((v) => (v.artist || concert?.eventName || 'Artis').trim()))
+    ).find((name) => {
+      const generatedSlug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+      const slugMatch = generatedSlug === (artistSlug || '').toLowerCase();
+      const codeMatch = ((concert.artists && concert.artists[name]?.code) || 'main') === randomCode;
+      return slugMatch && codeMatch;
+    });
+
+    if (fallbackName) {
+      matchedArtistName = fallbackName;
+      artistData = (concert.artists && concert.artists[fallbackName]) || {};
+    }
+  }
+
+  // Filter video khusus artist ini
+  const artistVideos = matchedArtistName
+    ? allVideos.filter(
+        (v) => (v.artist || concert?.eventName || 'Artis').trim().toLowerCase() === matchedArtistName.toLowerCase()
+      )
+    : [];
 
   // SEO
   usePageSEO({
-    title: concert?.eventName
-      ? `${decodedArtist} @ ${concert.eventName} — Fancam & Dokumentasi`
-      : `${decodedArtist} — Fancam Konser`,
+    title: matchedArtistName && concert?.eventName
+      ? `${matchedArtistName} @ ${concert.eventName} — Fancam & Dokumentasi`
+      : 'Musisi — Fancam Konser',
     description:
       artistData.bio ||
-      `Koleksi video rekaman panggung dan fancam ${decodedArtist} di konser ${concert?.eventName || ''}.`,
+      (matchedArtistName
+        ? `Koleksi video rekaman panggung dan fancam ${matchedArtistName} di konser ${concert?.eventName || ''}.`
+        : 'Koleksi video rekaman konser.'),
     image: artistData.coverImage || concert?.coverImage || 'https://www.hiras.my.id/icon-512.png',
-    url: `https://www.hiras.my.id/fancam-concert/${id}/${encodeURIComponent(decodedArtist)}`,
+    url: `https://www.hiras.my.id/fancam-concert/${id}/${artistSlug}/${randomCode}`,
   });
 
   const handleShare = () => {
@@ -132,21 +170,24 @@ export default function ConcertArtistDetailPage() {
     );
   }
 
-  if (!concert) {
+  if (!concert || !matchedArtistName) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-5">
         <div className="w-16 h-16 rounded-3xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 mx-auto flex items-center justify-center text-rose-500 shadow-sm">
           <AlertCircle size={30} />
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">
-          Konser Tidak Ditemukan
+          Musisi Tidak Ditemukan
         </h1>
+        <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+          Tautan musisi tidak valid atau kode unik tidak cocok dengan arsip event konser ini.
+        </p>
         <Link
-          to="/fancam-list"
+          to={`/fancam-concert/${id}`}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-fuchsia-600 text-white text-xs font-semibold"
         >
           <ArrowLeft size={14} />
-          <span>Kembali ke Daftar Konser</span>
+          <span>Kembali ke Konser {concert?.eventName || ''}</span>
         </Link>
       </div>
     );
@@ -166,7 +207,7 @@ export default function ConcertArtistDetailPage() {
           </Link>
           <span className="text-slate-300 dark:text-slate-700">/</span>
           <span className="text-slate-700 dark:text-slate-300 font-semibold truncate max-w-[200px] sm:max-w-sm">
-            {decodedArtist}
+            {matchedArtistName}
           </span>
         </div>
 
@@ -208,7 +249,7 @@ export default function ConcertArtistDetailPage() {
             {artistData.coverImage ? (
               <img
                 src={artistData.coverImage}
-                alt={decodedArtist}
+                alt={matchedArtistName}
                 className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl object-cover border-2 border-white/20 shadow-xl shrink-0"
               />
             ) : (
@@ -237,7 +278,7 @@ export default function ConcertArtistDetailPage() {
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight drop-shadow-xs">
-                {decodedArtist}
+                {matchedArtistName}
               </h1>
 
               {artistData.bio && (
@@ -255,7 +296,7 @@ export default function ConcertArtistDetailPage() {
         <div className="py-16 text-center rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 space-y-3 bg-white/50 dark:bg-slate-900/50">
           <Music size={32} className="mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            Belum ada rekaman lagu untuk {decodedArtist}
+            Belum ada rekaman lagu untuk {matchedArtistName}
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Video lagu dan fancam untuk artis ini belum ditambahkan pada event konser ini.
@@ -275,7 +316,7 @@ export default function ConcertArtistDetailPage() {
                     </span>
                     <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1">
                       <Mic size={12} className="text-fuchsia-500" />
-                      <span>{decodedArtist}</span>
+                      <span>{matchedArtistName}</span>
                     </span>
                   </div>
                   <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 truncate">
@@ -370,7 +411,7 @@ export default function ConcertArtistDetailPage() {
               <div className="flex items-center gap-2">
                 <ListMusic size={18} className="text-fuchsia-600 dark:text-fuchsia-400" />
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Daftar Lagu {decodedArtist} ({artistVideos.length})
+                  Daftar Lagu {matchedArtistName} ({artistVideos.length})
                 </h3>
               </div>
 

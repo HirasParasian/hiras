@@ -514,20 +514,37 @@ export default function AdminPage() {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '');
 
-      // Sanitize artists map
+      // Sanitize artists map & ensure unique randomCode per artist in this concert
       const sanitizedArtists = {};
+      const uniqueArtistNames = Array.from(
+        new Set(validVideos.map((v) => (v.artist || '').trim()).filter(Boolean))
+      );
+
+      // Collect existing artist codes to avoid collisions
+      const existingCodes = new Set();
       if (concertForm.artists && typeof concertForm.artists === 'object') {
-        Object.entries(concertForm.artists).forEach(([name, data]) => {
-          const cleanName = (name || '').trim();
-          if (cleanName && data && typeof data === 'object') {
-            sanitizedArtists[cleanName] = {
-              coverImage: data.coverImage || '',
-              bio: (data.bio || '').trim(),
-              genre: (data.genre || '').trim(),
-            };
-          }
+        Object.values(concertForm.artists).forEach((a) => {
+          if (a?.code) existingCodes.add(a.code);
         });
       }
+
+      uniqueArtistNames.forEach((name) => {
+        const data = (concertForm.artists && concertForm.artists[name]) || {};
+        let code = data.code;
+        if (!code) {
+          do {
+            code = generateShortId(6);
+          } while (existingCodes.has(code));
+          existingCodes.add(code);
+        }
+
+        sanitizedArtists[name] = {
+          code,
+          coverImage: data.coverImage || '',
+          bio: (data.bio || '').trim(),
+          genre: (data.genre || '').trim(),
+        };
+      });
 
       const payload = {
         eventName: (concertForm.eventName || '').trim(),
@@ -2894,11 +2911,18 @@ export default function AdminPage() {
                               key={artistName}
                               className="p-4 rounded-2xl border border-fuchsia-100 dark:border-fuchsia-950/60 bg-white dark:bg-slate-900/60 shadow-xs space-y-3"
                             >
-                              <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                <span className="w-2 h-2 rounded-full bg-fuchsia-500"></span>
-                                <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                                  {artistName}
-                                </h5>
+                              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-fuchsia-500"></span>
+                                  <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                                    {artistName}
+                                  </h5>
+                                </div>
+                                {artistInfo.code && (
+                                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
+                                    ID: {artistInfo.code}
+                                  </span>
+                                )}
                               </div>
 
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

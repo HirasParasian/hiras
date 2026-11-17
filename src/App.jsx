@@ -48,7 +48,7 @@ export default function App() {
                   <Route path="/proyek" element={<ProjectsPage />} />
                   <Route path="/fancam-list" element={<FancamPage />} />
                   <Route path="/fancam-concert/:id" element={<ConcertDetailPage />} />
-                  <Route path="/fancam-concert/:id/:artistName" element={<ConcertArtistDetailPage />} />
+                  <Route path="/fancam-concert/:id/:artistSlug/:randomCode" element={<ConcertArtistDetailPage />} />
                   <Route path="/admin" element={<AdminPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

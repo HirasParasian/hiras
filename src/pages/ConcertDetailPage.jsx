@@ -282,10 +282,19 @@ export default function ConcertDetailPage() {
                 (v) => (v.artist || concert?.eventName || 'Artis').trim() === artist
               );
 
+              // Buat slug bersih dari nama artist
+              const artistSlug = artist
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)+/g, '') || 'artist';
+
+              // Ambil random code unik artis jika ada, fallback ke kode unik aman
+              const randomCode = artistData.code || 'main';
+
               return (
                 <Link
                   key={artist}
-                  to={`/fancam-concert/${id}/${encodeURIComponent(artist)}`}
+                  to={`/fancam-concert/${id}/${artistSlug}/${randomCode}`}
                   className="group relative flex flex-col justify-between p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900 hover:border-fuchsia-500 dark:hover:border-fuchsia-500 hover:shadow-md transition-all space-y-4"
                 >
                   <div className="flex items-start gap-4">
