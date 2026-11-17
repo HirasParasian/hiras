@@ -173,6 +173,7 @@ export default function AdminPage() {
     date: '',
     venue: '',
     coverImage: '',
+    passcode: '',
     notes: '',
     artists: {},
     videos: [
@@ -427,6 +428,7 @@ export default function AdminPage() {
       date: '',
       venue: '',
       coverImage: '',
+      passcode: '',
       notes: '',
       artists: {},
       videos: [
@@ -443,6 +445,7 @@ export default function AdminPage() {
       date: concert.date || '',
       venue: concert.venue || '',
       coverImage: concert.coverImage || '',
+      passcode: concert.passcode || '',
       notes: concert.notes || '',
       artists: (concert.artists && typeof concert.artists === 'object') ? concert.artists : {},
       videos: Array.isArray(concert.videos) && concert.videos.length > 0
@@ -551,6 +554,7 @@ export default function AdminPage() {
         date: concertForm.date || '',
         venue: (concertForm.venue || '').trim(),
         coverImage: concertForm.coverImage || '',
+        passcode: (concertForm.passcode || '').trim(),
         notes: (concertForm.notes || '').trim(),
         slug: rawSlug,
         artists: sanitizedArtists,
@@ -2744,6 +2748,29 @@ export default function AdminPage() {
                   label="Foto Poster / Panggung Konser (Opsional)"
                 />
 
+                {/* PIN / Passcode Protection */}
+                <div className="p-3.5 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/60 dark:bg-amber-950/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                      <Shield size={14} className="text-amber-600 dark:text-amber-400" />
+                      <span>PIN / Passcode Akses Konser (Opsional)</span>
+                    </label>
+                    <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">
+                      {concertForm.passcode ? '🔒 Terkunci PIN' : '🌐 Publik (Tanpa PIN)'}
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={concertForm.passcode}
+                    onChange={(e) => setConcertForm({ ...concertForm, passcode: e.target.value })}
+                    placeholder="Kosongkan jika konser publik. Contoh PIN: 1234 atau rahasia2026"
+                    className="w-full px-3 py-2 rounded-xl text-xs border border-amber-300 dark:border-amber-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 font-mono"
+                  />
+                  <p className="text-[10px] text-amber-800 dark:text-amber-300/80 leading-relaxed">
+                    Jika PIN diisi, pengunjung yang membuka URL konser atau musisi wajib memasukkan PIN ini terlebih dahulu sebelum bisa melihat daftar artis dan videonya.
+                  </p>
+                </div>
+
                 {/* Personal Notes / Impression */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -3031,8 +3058,13 @@ export default function AdminPage() {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">
-                            {concert.eventName}
+                          <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
+                            <span className="truncate">{concert.eventName}</span>
+                            {concert.passcode && (
+                              <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400 shrink-0 flex items-center gap-0.5" title={`PIN: ${concert.passcode}`}>
+                                🔒 PIN
+                              </span>
+                            )}
                           </h4>
                           <p className="text-xs text-slate-500 truncate">
                             {concert.venue || 'Venue Belum Diisi'}

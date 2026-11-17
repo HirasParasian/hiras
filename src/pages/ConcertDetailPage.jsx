@@ -18,6 +18,8 @@ import {
   Loader2,
   AlertCircle,
   Users,
+  Lock,
+  KeyRound,
 } from 'lucide-react';
 import { fetchConcertEventById } from '../services/firebase';
 import { parseVideoUrl } from '../utils/videoUtils';
@@ -29,6 +31,11 @@ export default function ConcertDetailPage() {
   const [loading, setLoading] = useState(true);
   const [searchArtist, setSearchArtist] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Passcode / PIN state
+  const [passcodeInput, setPasscodeInput] = useState('');
+  const [passcodeError, setPasscodeError] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
 
   // SEO
   usePageSEO({
@@ -52,6 +59,15 @@ export default function ConcertDetailPage() {
         const data = await fetchConcertEventById(id);
         if (isMounted) {
           setConcert(data);
+          // Check if session already unlocked
+          if (!data?.passcode) {
+            setIsUnlocked(true);
+          } else {
+            const savedUnlock = sessionStorage.getItem(`fancam_unlocked_${data.id || id}`);
+            if (savedUnlock === 'true') {
+              setIsUnlocked(true);
+            }
+          }
         }
       } catch (err) {
         console.warn('Error loading concert detail:', err);
@@ -78,6 +94,22 @@ export default function ConcertDetailPage() {
       navigator.clipboard.writeText(window.location.href);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleVerifyPasscode = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!concert?.passcode) {
+      setIsUnlocked(true);
+      return;
+    }
+
+    if (passcodeInput.trim() === concert.passcode.trim()) {
+      setIsUnlocked(true);
+      setPasscodeError(false);
+      sessionStorage.setItem(`fancam_unlocked_${concert.id || id}`, 'true');
+    } else {
+      setPasscodeError(true);
     }
   };
 
@@ -232,8 +264,59 @@ export default function ConcertDetailPage() {
         )}
       </div>
 
-      {/* ARTISTS / MUSICIANS LIST SECTION */}
-      <div className="space-y-6">
+      {/* PASSCODE LOCK MODAL / SCREEN */}
+      {concert.passcode && !isUnlocked ? (
+        <div className="py-12 sm:py-16 px-4 rounded-3xl border border-amber-200/80 dark:border-amber-900/60 bg-white dark:bg-slate-900 shadow-md max-w-lg mx-auto text-center space-y-5 animate-fade-in">
+          <div className="w-16 h-16 rounded-3xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 mx-auto flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-inner">
+            <Lock size={30} />
+          </div>
+
+          <div className="space-y-1.5">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+              Konser Ini Dilindungi PIN
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Arsip rekaman fancam untuk <strong className="text-slate-800 dark:text-slate-200">{concert.eventName}</strong> bersifat privat. Masukkan PIN akses untuk membukanya.
+            </p>
+          </div>
+
+          <form onSubmit={handleVerifyPasscode} className="space-y-3 max-w-xs mx-auto">
+            <div className="relative">
+              <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="password"
+                autoFocus
+                value={passcodeInput}
+                onChange={(e) => {
+                  setPasscodeInput(e.target.value);
+                  setPasscodeError(false);
+                }}
+                placeholder="Masukkan PIN / Passcode..."
+                className={`w-full pl-10 pr-4 py-2.5 text-center text-sm rounded-xl border bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 tracking-widest font-mono focus:outline-none focus:ring-2 ${
+                  passcodeError
+                    ? 'border-rose-500 focus:ring-rose-500/30'
+                    : 'border-slate-200 dark:border-slate-800 focus:ring-fuchsia-500/30 focus:border-fuchsia-500'
+                }`}
+              />
+            </div>
+
+            {passcodeError && (
+              <p className="text-[11px] text-rose-500 font-semibold animate-shake">
+                PIN yang Anda masukkan salah. Silakan coba lagi.
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-700 hover:to-indigo-700 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+            >
+              Buka Akses Konser
+            </button>
+          </form>
+        </div>
+      ) : (
+        /* ARTISTS / MUSICIANS LIST SECTION */
+        <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -369,6 +452,7 @@ export default function ConcertDetailPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
