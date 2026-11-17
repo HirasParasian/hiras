@@ -17,6 +17,7 @@ const AdminPage = lazy(() => import('./pages/AdminPage'));
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
 const FancamPage = lazy(() => import('./pages/FancamPage'));
 const ConcertDetailPage = lazy(() => import('./pages/ConcertDetailPage'));
+const ConcertArtistDetailPage = lazy(() => import('./pages/ConcertArtistDetailPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function PageLoader() {
@@ -47,6 +48,7 @@ export default function App() {
                   <Route path="/proyek" element={<ProjectsPage />} />
                   <Route path="/fancam-list" element={<FancamPage />} />
                   <Route path="/fancam-concert/:id" element={<ConcertDetailPage />} />
+                  <Route path="/fancam-concert/:id/:artistName" element={<ConcertArtistDetailPage />} />
                   <Route path="/admin" element={<AdminPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

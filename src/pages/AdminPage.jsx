@@ -29,6 +29,7 @@ import {
   GraduationCap,
   Film,
   Music,
+  Mic,
   X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

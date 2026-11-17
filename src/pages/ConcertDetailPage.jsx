@@ -9,21 +9,17 @@ import {
   Mic,
   Share2,
   Check,
-  ChevronLeft,
   ChevronRight,
   ExternalLink,
   Film,
   Search,
-  Tv,
   ListMusic,
   Play,
   Loader2,
   AlertCircle,
-  Smartphone,
-  Monitor,
+  Users,
 } from 'lucide-react';
 import { fetchConcertEventById } from '../services/firebase';
-import VideoPlayer from '../components/VideoPlayer';
 import { parseVideoUrl } from '../utils/videoUtils';
 import { usePageSEO } from '../hooks/usePageSEO';
 
@@ -31,29 +27,18 @@ export default function ConcertDetailPage() {
   const { id } = useParams();
   const [concert, setConcert] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
-  const [searchSong, setSearchSong] = useState('');
-  const [selectedArtist, setSelectedArtist] = useState('Semua');
+  const [searchArtist, setSearchArtist] = useState('');
   const [copied, setCopied] = useState(false);
-
-  // Default orientasi video: portrait di mobile (< 640px), landscape di desktop
-  const [isPortrait, setIsPortrait] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 640;
-    }
-    return true;
-  });
 
   // SEO
   usePageSEO({
     title: concert?.eventName
-      ? `${concert.eventName} — Fancam & Dokumentasi Konser`
+      ? `${concert.eventName} — Musisi & Fancam Konser`
       : 'Detail Konser & Fancam',
     description:
       concert?.notes ||
       (concert?.eventName
-        ? `Dokumentasi rekaman panggung fancam ${concert.eventName}${concert.venue ? ` di ${concert.venue}` : ''
-        }.`
+        ? `Daftar musisi dan arsip fancam panggung ${concert.eventName}${concert.venue ? ` di ${concert.venue}` : ''}.`
         : 'Arsip rekaman fancam konser musik.'),
     image: concert?.coverImage || 'https://www.hiras.my.id/icon-512.png',
     url: `https://www.hiras.my.id/fancam-concert/${id}`,
@@ -67,7 +52,6 @@ export default function ConcertDetailPage() {
         const data = await fetchConcertEventById(id);
         if (isMounted) {
           setConcert(data);
-          setActiveVideoIndex(0);
         }
       } catch (err) {
         console.warn('Error loading concert detail:', err);
@@ -85,7 +69,6 @@ export default function ConcertDetailPage() {
     };
   }, [id]);
 
-  // Scroll to top on page load
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
@@ -108,33 +91,16 @@ export default function ConcertDetailPage() {
   }, {});
   const uniqueArtists = Object.keys(artistCounts);
 
-  // Filter songs by search and artist
-  const query = searchSong.toLowerCase().trim();
-  const filteredVideos = videos.filter((v) => {
-    const matchesSearch =
-      !query ||
-      (v.songTitle || '').toLowerCase().includes(query) ||
-      (v.artist || '').toLowerCase().includes(query) ||
-      (v.notes || '').toLowerCase().includes(query);
-
-    const matchesArtist =
-      selectedArtist === 'Semua' ||
-      (v.artist || 'Artis').trim().toLowerCase() === selectedArtist.toLowerCase();
-
-    return matchesSearch && matchesArtist;
+  const query = searchArtist.toLowerCase().trim();
+  const filteredArtists = uniqueArtists.filter((artist) => {
+    if (!query) return true;
+    const artistData = (concert?.artists && concert.artists[artist]) || {};
+    return (
+      artist.toLowerCase().includes(query) ||
+      (artistData.genre || '').toLowerCase().includes(query) ||
+      (artistData.bio || '').toLowerCase().includes(query)
+    );
   });
-
-  const activeVideo = videos[activeVideoIndex] || videos[0] || null;
-
-  const handleNextVideo = () => {
-    if (videos.length <= 1) return;
-    setActiveVideoIndex((prev) => (prev + 1) % videos.length);
-  };
-
-  const handlePrevVideo = () => {
-    if (videos.length <= 1) return;
-    setActiveVideoIndex((prev) => (prev - 1 + videos.length) % videos.length);
-  };
 
   if (loading) {
     return (
@@ -157,17 +123,29 @@ export default function ConcertDetailPage() {
         <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
           Tautan konser dengan ID <span className="font-mono text-fuchsia-600 dark:text-fuchsia-400">/{id}</span> mungkin telah dipindahkan atau belum ditambahkan.
         </p>
+        <Link
+          to="/fancam-list"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-fuchsia-600 text-white text-xs font-semibold"
+        >
+          <ArrowLeft size={14} />
+          <span>Kembali ke Daftar Konser</span>
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
-      {/* ========================================== */}
-      {/* BREADCRUMB & TOP ACTIONS                   */}
-      {/* ========================================== */}
+      {/* BREADCRUMB & TOP ACTIONS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800/80">
         <div className="flex items-center gap-2 text-xs">
+          <Link
+            to="/fancam-list"
+            className="text-slate-500 hover:text-fuchsia-600 transition-colors flex items-center gap-1 font-medium"
+          >
+            <ArrowLeft size={13} />
+            <span>Fancam Konser</span>
+          </Link>
           <span className="text-slate-300 dark:text-slate-700">/</span>
           <span className="text-slate-700 dark:text-slate-300 font-semibold truncate max-w-[200px] sm:max-w-sm">
             {concert.eventName}
@@ -193,9 +171,7 @@ export default function ConcertDetailPage() {
         </button>
       </div>
 
-      {/* ========================================== */}
-      {/* CONCERT HERO BANNER                        */}
-      {/* ========================================== */}
+      {/* CONCERT HERO BANNER */}
       <div className="relative w-full rounded-3xl overflow-hidden border border-slate-200/90 dark:border-slate-800/90 bg-slate-950 shadow-md">
         <div className="relative w-full aspect-21/9 sm:aspect-24/7 min-h-[170px] bg-slate-900 overflow-hidden">
           {concert.coverImage ? (
@@ -214,8 +190,12 @@ export default function ConcertDetailPage() {
             <div className="space-y-1.5 max-w-2xl">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-fuchsia-600/90 backdrop-blur-xs text-white">
+                  <Users size={11} />
+                  <span>{uniqueArtists.length} Musisi / Artis</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/20 backdrop-blur-xs text-white">
                   <Sparkles size={11} />
-                  <span>{videos.length} Video Fancam</span>
+                  <span>{videos.length} Fancam</span>
                 </span>
                 {concert.date && (
                   <span className="inline-flex items-center gap-1 text-xs text-slate-300 bg-black/40 backdrop-blur-xs px-2.5 py-0.5 rounded-full">
@@ -235,20 +215,6 @@ export default function ConcertDetailPage() {
                 {concert.eventName}
               </h1>
             </div>
-
-            {uniqueArtists.length > 0 && (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {uniqueArtists.map((artist) => (
-                  <span
-                    key={artist}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 backdrop-blur-md border border-white/15 text-slate-100"
-                  >
-                    <Mic size={11} className="text-fuchsia-400" />
-                    <span>{artist}</span>
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
@@ -266,340 +232,134 @@ export default function ConcertDetailPage() {
         )}
       </div>
 
-      {/* ========================================== */}
-      {/* VIDEO PLAYER & PLAYLIST SECTION            */}
-      {/* ========================================== */}
-      {videos.length === 0 ? (
-        <div className="py-16 text-center rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 space-y-3 bg-white/50 dark:bg-slate-900/50">
-          <Music size={32} className="mx-auto text-slate-400" />
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            Belum ada rekaman lagu yang ditambahkan
-          </h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Video lagu dan fancam untuk event konser ini belum diunggah melalui menu Admin.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Main Video Player Stage */}
-          {activeVideo && (
-            <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900 overflow-hidden shadow-sm space-y-4 p-4 sm:p-6">
-              {/* Active Video Title Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono bg-fuchsia-100 dark:bg-fuchsia-950/80 text-fuchsia-600 dark:text-fuchsia-400 uppercase tracking-wider">
-                      Lagu {activeVideoIndex + 1} dari {videos.length}
-                    </span>
-                    {activeVideo.artist && (
-                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1">
-                        <Mic size={12} className="text-fuchsia-500" />
-                        <span>{activeVideo.artist}</span>
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 truncate">
-                    {activeVideo.songTitle || 'Rekaman Konser'}
-                  </h2>
-                </div>
+      {/* ARTISTS / MUSICIANS LIST SECTION */}
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <Mic size={18} className="text-fuchsia-600 dark:text-fuchsia-400" />
+              <span>Daftar Musisi / Artis di Konser Ini</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Pilih musisi untuk melihat koleksi rekaman lagu dan fancam khusus penampilan mereka.
+            </p>
+          </div>
 
-                {/* Player Controls (Prev / Next & Source & Orientation) */}
-                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                  {/* Orientation Switcher (Portrait / Landscape) */}
-                  <button
-                    type="button"
-                    onClick={() => setIsPortrait((prev) => !prev)}
-                    className={`px-2.5 py-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold ${isPortrait
-                      ? 'border-fuchsia-500/50 bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400'
-                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-                      }`}
-                    title={
-                      isPortrait
-                        ? 'Mode Portrait Aktif (Klik untuk Landscape)'
-                        : 'Mode Landscape Aktif (Klik untuk Portrait)'
-                    }
-                  >
-                    {isPortrait ? (
-                      <>
-                        <Smartphone size={15} className="text-fuchsia-500" />
-                        <span className="text-[11px]">Portrait</span>
-                      </>
-                    ) : (
-                      <>
-                        <Monitor size={15} />
-                        <span className="text-[11px]">Landscape</span>
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handlePrevVideo}
-                    disabled={videos.length <= 1}
-                    className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    title="Lagu Sebelumnya"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleNextVideo}
-                    disabled={videos.length <= 1}
-                    className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    title="Lagu Selanjutnya"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-
-                  {activeVideo.videoUrl && (
-                    <a
-                      href={activeVideo.videoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
-                      title="Buka Video Sumber Asli"
-                    >
-                      <ExternalLink size={16} />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Video Embed Player */}
-              <div
-                className={`w-full rounded-2xl overflow-hidden bg-black shadow-inner flex items-center justify-center transition-all duration-300 ${isPortrait ? 'max-w-xs sm:max-w-sm mx-auto' : ''
-                  }`}
-              >
-                <VideoPlayer
-                  url={activeVideo.videoUrl}
-                  title={`${activeVideo.artist || ''} - ${activeVideo.songTitle || ''}`}
-                  autoPlay={false}
-                  aspectRatio={isPortrait ? 'aspect-[9/16]' : 'aspect-video'}
-                />
-              </div>
-
-              {/* Active Song Notes */}
-              {activeVideo.notes && (
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300">
-                  <span className="font-semibold text-slate-700 dark:text-slate-200 mr-1.5">
-                    Catatan Fancam:
-                  </span>
-                  {activeVideo.notes}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Playlist & Filter Controls */}
-          <div className="space-y-4 pt-2">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
-              <div className="flex items-center gap-2">
-                <ListMusic size={18} className="text-fuchsia-600 dark:text-fuchsia-400" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Daftar Lagu di Konser Ini ({videos.length})
-                </h3>
-              </div>
-
-              {/* Quick Search Song inside this concert */}
-              <div className="relative w-full sm:w-64">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Cari lagu di konser ini..."
-                  value={searchSong}
-                  onChange={(e) => setSearchSong(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-                />
-              </div>
-            </div>
-
-            {/* Filter Pills if multiple artists exist */}
-            {uniqueArtists.length > 1 && (
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-                <button
-                  type="button"
-                  onClick={() => setSelectedArtist('Semua')}
-                  className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${selectedArtist === 'Semua'
-                    ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                    }`}
-                >
-                  Semua Penyanyi ({videos.length})
-                </button>
-                {uniqueArtists.map((artist) => {
-                  const artistData = (concert.artists && concert.artists[artist]) || {};
-                  return (
-                    <button
-                      key={artist}
-                      type="button"
-                      onClick={() => setSelectedArtist(artist)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${selectedArtist === artist
-                        ? 'bg-fuchsia-600 text-white font-semibold shadow-xs'
-                        : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                        }`}
-                    >
-                      {artistData.coverImage && (
-                        <img
-                          src={artistData.coverImage}
-                          alt={artist}
-                          className="w-4 h-4 rounded-full object-cover"
-                        />
-                      )}
-                      <span>{artist}</span>
-                      <span className="text-[10px] opacity-75">({artistCounts[artist]})</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Songs Grouped by Artist */}
-            {filteredVideos.length === 0 ? (
-              <div className="py-12 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-6">
-                <p className="text-xs text-slate-500">
-                  Tidak ada lagu yang cocok dengan pencarian "{searchSong}".
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {uniqueArtists.map((artist) => {
-                  const vids = filteredVideos.filter(
-                    (v) => ((v.artist || concert?.eventName || 'Artis').trim()) === artist
-                  );
-                  if (vids.length === 0) return null;
-                  const artistData = (concert.artists && concert.artists[artist]) || {};
-
-                  return (
-                    <div key={artist} className="space-y-4">
-                      {/* Artist Header / Card with Cover and Bio */}
-                      <div className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/80 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        {artistData.coverImage ? (
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs">
-                            <img
-                              src={artistData.coverImage}
-                              alt={artist}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-fuchsia-600 to-indigo-600 shrink-0 flex items-center justify-center text-white shadow-xs">
-                            <Mic size={28} className="opacity-90" />
-                          </div>
-                        )}
-
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
-                              {artist}
-                            </h3>
-                            {artistData.genre && (
-                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-fuchsia-100 dark:bg-fuchsia-950/80 text-fuchsia-600 dark:text-fuchsia-400">
-                                {artistData.genre}
-                              </span>
-                            )}
-                            <span className="text-xs text-slate-400">
-                              • {vids.length} Rekaman Fancam
-                            </span>
-                          </div>
-
-                          {artistData.bio ? (
-                            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                              {artistData.bio}
-                            </p>
-                          ) : (
-                            <p className="text-xs text-slate-400 italic">
-                              Rekaman lagu panggung {artist} di konser ini.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {vids.map((vid) => {
-                          const origIdx = videos.findIndex((v) => v === vid);
-                          const isCurrent = origIdx === activeVideoIndex;
-                          const parsed = parseVideoUrl(vid.videoUrl);
-                          return (
-                            <div
-                              key={vid.id || origIdx}
-                              onClick={() => {
-                                setActiveVideoIndex(origIdx);
-                                window.scrollTo({ top: 320, behavior: 'smooth' });
-                              }}
-                              className={`group flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs ${isCurrent
-                                ? 'border-fuchsia-500 bg-fuchsia-50/50 dark:bg-fuchsia-950/30 ring-2 ring-fuchsia-500/20'
-                                : 'border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-fuchsia-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                                }`}
-                            >
-                              {/* Thumbnail with status badge */}
-                              <div className="relative w-20 h-14 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
-                                {parsed.thumbnailUrl ? (
-                                  <img
-                                    src={parsed.thumbnailUrl}
-                                    alt={vid.songTitle}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-900 to-indigo-950 flex items-center justify-center">
-                                    <Music size={18} className="text-white/60" />
-                                  </div>
-                                )}
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-                                  <div
-                                    className={`w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-transform ${isCurrent
-                                      ? 'bg-fuchsia-600 text-white scale-110'
-                                      : 'bg-black/60 text-white group-hover:bg-fuchsia-600 group-hover:scale-110'
-                                      }`}
-                                  >
-                                    <Play size={11} className="ml-0.5 fill-current" />
-                                  </div>
-                                </div>
-                              </div>
-                              {/* Song Info */}
-                              <div className="flex-1 min-w-0 space-y-0.5">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] font-mono font-bold text-slate-400">
-                                    #{origIdx + 1}
-                                  </span>
-                                  {isCurrent && (
-                                    <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-fuchsia-600 text-white">
-                                      Diputar
-                                    </span>
-                                  )}
-                                </div>
-                                <h4
-                                  className={`text-xs sm:text-sm font-bold truncate transition-colors ${isCurrent
-                                    ? 'text-fuchsia-600 dark:text-fuchsia-400'
-                                    : 'text-slate-900 dark:text-slate-100 group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400'
-                                    }`}
-                                >
-                                  {vid.songTitle || 'Lagu Konser'}
-                                </h4>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                                  {vid.artist || concert.eventName}
-                                </p>
-                              </div>
-                              <div
-                                className={`text-slate-400 transition-colors pr-1 ${isCurrent
-                                  ? 'text-fuchsia-600 dark:text-fuchsia-400'
-                                  : 'group-hover:text-fuchsia-500'
-                                  }`}
-                              >
-                                <ChevronRight size={16} />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+          <div className="relative w-full sm:w-64">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Cari musisi..."
+              value={searchArtist}
+              onChange={(e) => setSearchArtist(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+            />
           </div>
         </div>
-      )}
+
+        {uniqueArtists.length === 0 ? (
+          <div className="py-16 text-center rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-8 space-y-3 bg-white/50 dark:bg-slate-900/50">
+            <Music size={32} className="mx-auto text-slate-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              Belum ada musisi / lagu yang ditambahkan
+            </h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              Lagu dan musisi untuk event konser ini belum diunggah melalui menu Admin.
+            </p>
+          </div>
+        ) : filteredArtists.length === 0 ? (
+          <div className="py-12 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-6">
+            <p className="text-xs text-slate-500">
+              Tidak ada musisi yang cocok dengan pencarian "{searchArtist}".
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredArtists.map((artist) => {
+              const artistData = (concert.artists && concert.artists[artist]) || {};
+              const songCount = artistCounts[artist] || 0;
+              const artistSongs = videos.filter(
+                (v) => (v.artist || concert?.eventName || 'Artis').trim() === artist
+              );
+
+              return (
+                <Link
+                  key={artist}
+                  to={`/fancam-concert/${id}/${encodeURIComponent(artist)}`}
+                  className="group relative flex flex-col justify-between p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900 hover:border-fuchsia-500 dark:hover:border-fuchsia-500 hover:shadow-md transition-all space-y-4"
+                >
+                  <div className="flex items-start gap-4">
+                    {artistData.coverImage ? (
+                      <img
+                        src={artistData.coverImage}
+                        alt={artist}
+                        className="w-16 h-16 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-600 to-indigo-600 shrink-0 flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform duration-300">
+                        <Mic size={26} />
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {artistData.genre && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-fuchsia-100 dark:bg-fuchsia-950/80 text-fuchsia-600 dark:text-fuchsia-400">
+                            {artistData.genre}
+                          </span>
+                        )}
+                        <span className="text-[11px] text-slate-400">
+                          {songCount} Lagu
+                        </span>
+                      </div>
+
+                      <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400 transition-colors truncate">
+                        {artist}
+                      </h3>
+
+                      {artistData.bio ? (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                          {artistData.bio}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-slate-400 italic line-clamp-1">
+                          Lihat semua rekaman lagu panggung.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Track Preview List */}
+                  {artistSongs.length > 0 && (
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-1">
+                      <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                        Lagu Fancam:
+                      </div>
+                      {artistSongs.slice(0, 2).map((s, idx) => (
+                        <div key={idx} className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                          <span className="text-[10px] font-mono text-fuchsia-500">▶</span>
+                          <span className="truncate">{s.songTitle}</span>
+                        </div>
+                      ))}
+                      {artistSongs.length > 2 && (
+                        <span className="text-[11px] text-fuchsia-600 dark:text-fuchsia-400 font-medium block pt-0.5">
+                          +{artistSongs.length - 2} lagu lainnya...
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Footer Action */}
+                  <div className="pt-2 flex items-center justify-between text-xs font-semibold text-fuchsia-600 dark:text-fuchsia-400 group-hover:text-fuchsia-700 dark:group-hover:text-fuchsia-300">
+                    <span>Buka Detail Musisi</span>
+                    <ChevronRight size={15} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
