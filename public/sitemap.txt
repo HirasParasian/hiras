@@ -1,6 +1,6 @@
 https://www.hiras.my.id/
-https://www.hiras.my.id/list-book
-https://www.hiras.my.id/proyek
-https://www.hiras.my.id/artikel
-https://www.hiras.my.id/fancam-list
-https://www.hiras.my.id/me
+https://www.hiras.my.id/list-book/
+https://www.hiras.my.id/proyek/
+https://www.hiras.my.id/artikel/
+https://www.hiras.my.id/fancam-list/
+https://www.hiras.my.id/me/
